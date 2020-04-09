@@ -34,10 +34,10 @@ parser.add_argument('-f', '--file',
                     help = 'quick hack for jupyter')
 
 # training parameters
-
 parser.add_argument('--batch_size', type=int, default=10)
 parser.add_argument('--n_iter', type=int, default=25, help = 'Number of epochs')
 parser.add_argument('--lr', type = float, default = 1e-3, help = 'Learning rate for the optimizer')
+
 #model definition
 #parser.add_argument('--targets', type=str) #define the library
 parser.add_argument('--model', type=str, default = '2Channels', help = "Select the network model") #define the library
