@@ -1,3 +1,7 @@
+"""
+@author: Yann BOUQUET
+"""
+
 import os.path
 
 import numpy as np

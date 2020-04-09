@@ -1,3 +1,7 @@
+"""
+@author: Yann BOUQUET
+"""
+
 import torch
 from torch import nn
 import torch.optim as optim
@@ -5,7 +9,6 @@ import torch.optim as optim
 def train_model(model, train_input, train_target, mini_batch_size, lr, num_epoch = 25):
     criterion = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
-
 
     for e in range(num_epoch):
         running_loss = 0

@@ -6,7 +6,7 @@ import argparse
 import os
 
 ######################################################################
-#if __name__ == '__main__':
+
 parser = argparse.ArgumentParser(description='DLC prologue file for practical sessions.')
 
 parser.add_argument('--full',
