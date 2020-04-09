@@ -6,7 +6,7 @@ Created on Mon Apr  6 10:22:16 2020
 @author: thomas
 """
 import torch
-import functions
+import io_process
 
 
 
@@ -18,7 +18,7 @@ def train_model(model, train_input, train_target, mini_batch_size, eta = 1e-2):
         sum_loss = 0
         for b in range(0, train_input.size(0), mini_batch_size):
             output = model(train_input.narrow(0, b, mini_batch_size))
-            exp_proba = functions.expected_probabilities(train_target.narrow(0, b, mini_batch_size))
+            exp_proba = io_process.one_hot_encoding(train_target.narrow(0, b, mini_batch_size))
             loss = criterion(output, exp_proba)
             model.zero_grad() # Initialization of the gradient to zero.
             loss.backward() # Compute the gradient.

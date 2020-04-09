@@ -12,22 +12,15 @@ import dlc_practical_prologue as prologue
 
 
 
-def visualisation(model, C, H, W):
-    from torchsummary import summary
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-    summary(model, (C, W, H))
-
-
 # Formatting output.
-def expected_probabilities(target):
+def one_hot_encoding(target):
     mini_batch_size = len(target)
-    exp_proba = torch.tensor([[0. for figure in range(10)] for index in range(mini_batch_size)])
+    results = torch.zeros(mini_batch_size, 10)
     index = 0
     for figure in target:
-        exp_proba[index][figure] = 1.
+        results[index][figure] = 1.
         index += 1
-    return exp_proba
+    return results
 
 
 def formatting_input(pairs_nb):
