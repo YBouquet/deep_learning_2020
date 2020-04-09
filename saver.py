@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime as dt
 
 DATETIME_FMT = '%d-%m-%Y %H:%M:%S'
-HEADER = np.array([['datetime', 'target', 'model', 'optimizer', 'epochs', 'minibatch_size', 'accuracy', 'f1_score', 'roc', 'comments']])
+HEADER = np.array([['datetime', 'target', 'model', 'optimizer', 'learing_rate', 'epochs', 'minibatch_size', 'accuracy', 'f1_score', 'roc', 'comments']])
 
 
 def save_csv(filename, infos):
@@ -19,6 +19,7 @@ def save_csv(filename, infos):
                                     infos['target'],
                                     infos['model'],
                                     infos['optimizer'],
+                                    infos['learning_rate'],
                                     infos['epochs'],
                                     infos['minibatch_size'],
                                     infos['accuracy'],

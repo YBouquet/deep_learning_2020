@@ -18,6 +18,7 @@ import io_bin_process
 import io_num_process
 
 from saver import save_csv
+
 GETTERS_DICT =  {
                     '2Channels': ('Binary', get_2channels),
                     'Net': ('Number', get_net),
@@ -72,6 +73,7 @@ def main(args):
             infos['target'] = GETTERS_DICT[args.model][0]
             infos['model'] =  args.model
             infos['optimizer'] = 'SGD'
+            infos['learning_rate'] = args.lr
             infos['epochs'] = args.n_iter
             infos['minibatch_size'] = args.batch_size
             infos['accuracy'] = accuracy
