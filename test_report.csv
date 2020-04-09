@@ -5,3 +5,7 @@ datetime,target,model,optimizer,epochs,minibatch_size,accuracy,f1_score,roc,comm
 09-04-2020 15:26:44,Binary,2Channels,SGD,5,10,73.8,nan,nan,Avec mon poto TOMTOM v2
 09-04-2020 15:27:20,Binary,2Channels,SGD,8,10,76.8,nan,nan,Avec mon poto TOMTOM v3
 09-04-2020 15:28:44,Binary,2Channels,SGD,1,10,63.3,nan,nan,Avec mon poto TOMTOM v3
+09-04-2020 18:45:05,Number,LeNet5,SGD,5,10,85.3,nan,nan,testons tout ça!
+09-04-2020 18:45:55,Number,Net2,SGD,5,10,89.1,nan,nan,testons tout ça!
+09-04-2020 18:46:21,Number,Net,SGD,5,10,89.1,nan,nan,testons tout ça!
+09-04-2020 18:46:41,Binary,2Channels,SGD,5,10,76.3,nan,nan,testons tout ça!
