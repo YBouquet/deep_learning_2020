@@ -3,7 +3,7 @@
 """
 Created on Mon Apr  6 10:14:19 2020
 
-@author: thomas
+@author: Thomas Fry
 """
 
 import torch

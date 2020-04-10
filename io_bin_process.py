@@ -1,3 +1,7 @@
+"""
+@author: Yann BOUQUET
+"""
+
 import torch
 
 
