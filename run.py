@@ -39,17 +39,17 @@ def print_error(name, error_type, nb_errors, size_):
 def main(args):
     if args.seed >= 0:
         torch.manual_seed(args.seed)
-    model_tuple = GETTERS_DICT[args.model]
-    if model_tuple[0] == 'Binary':
-        tr_input, tr_target, _, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
-        tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
-    else:
-        (tr_input, train_target,
-        test_set_figures, test_target_figures,
-        test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(PAIRS_NB)
-        tr_target = io_num_process.one_hot_encoding(train_target)
-
     try:
+        model_tuple = GETTERS_DICT[args.model]
+        if model_tuple[0] == 'Binary':
+            tr_input, tr_target, _, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
+            tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
+        else:
+            (tr_input, train_target,
+            test_set_figures, test_target_figures,
+            test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(PAIRS_NB)
+            tr_target = io_num_process.one_hot_encoding(train_target)
+
         m_model = model_tuple[1]()
         print("---------- START TRAINING ---------------")
         train_model(m_model, tr_input, tr_target, args.batch_size, args.lr, num_epoch = args.n_iter)
