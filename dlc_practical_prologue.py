@@ -42,7 +42,7 @@ parser.add_argument('--lr', type = float, default = 1e-3, help = 'Learning rate 
 #model definition
 #parser.add_argument('--targets', type=str) #define the library
 parser.add_argument('--model', type=str, default = '2Channels', help = "Select the network model") #define the library
-parser.add_argument('--comments', type=str, default = '', help = 'adding some comments about the process')
+parser.add_argument('--comments', type=str, default = "", help = 'adding some comments about the process')
 parser.add_argument('--save', type=bool, default = False, help ='decide if we save the result in the log file')
 args = parser.parse_args()
 

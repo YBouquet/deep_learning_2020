@@ -58,7 +58,7 @@ def search(filename, dates = None,  model = None, target = None):
     else:
         report_df = pd.read_csv(filename, delimiter = ',')
         result = pd.DataFrame()
-        if dates and len(dates)>0:
+        if dates and len(dates) > 0 :
             if len(dates) != 2:
                 for m_date in dates:
                     result = result.append(__search_by_date__(report_df, m_date.year, m_date.month, m_date.day, m_date.hour, m_date.minute))
@@ -69,6 +69,8 @@ def search(filename, dates = None,  model = None, target = None):
                     max_date, min_date = dates[1], dates[0]
                 result = __search_from__(report_df, min_date.year, min_date.month, min_date.day, min_date.hour, min_date.minute)
                 result = __search_until__(result, max_date.year, max_date.month, max_date.day, max_date.hour, max_date.minute)
+        else:
+            result = report_df.copy()
 
         if model:
             result = __search_by_model__(result, model)
@@ -85,12 +87,11 @@ def main(args):
     str_dates = args.dates.split(',')
     result = []
     for date in str_dates:
-        date = date.replace(',','')
         m_date = re.findall('[0-9]*[/-][0-9]*[/-][0-9]*$', date)
         m_datetime = re.findall('[0-9]*[/-][0-9]*[/-][0-9]* [0-9]*:*[0-9]*$', date)
         if m_date:
-            date_format = '%d-%m-%Y'
             try:
+                date_format = '%d-%m-%Y'
                 for d_ in m_date:
                     if re.search('/', d_):
                         date_format = date_format.replace('-','/')
@@ -100,8 +101,8 @@ def main(args):
             except ValueError:
                 print('ERROR : please reconsider the date format (DD/MM/YYYY or DD-MM-YYYY)')
         if m_datetime:
-            datetime_format = '%d-%m-%Y %H'
             try:
+                datetime_format = '%d-%m-%Y %H'
                 for d_ in m_datetime:
                     if re.search(':', d_):
                         datetime_format +=':%M'
@@ -112,7 +113,7 @@ def main(args):
                     result.append(dt.strptime(d_, datetime_format))
             except ValueError:
                 print('ERROR : please reconsider the date format (DD/MM/YYYY or DD-MM-YYYY) and time format (hh or hh:mm)')
-    search(args.filename, result, model = args.model, target = args.target)
+    search(args.filename, dates = result, model = args.model, target = args.target)
 
 if __name__ =='__main__':
     parser = argparse.ArgumentParser(description='Searching elements in the report csv file')
