@@ -24,9 +24,9 @@ NB_HIDDEN = 200
 class Net(torch.nn.Module):
     def __init__(self, nb_hidden):
         super(Net, self).__init__()
-        self.conv1 = torch.nn.Conv2d(IN_CHANNELS, OUT_CHANNELS_NET, 
+        self.conv1 = torch.nn.Conv2d(IN_CHANNELS, OUT_CHANNELS_NET,
                                      kernel_size=KERNEL_SIZE, padding=PADDING)
-        self.conv2 = torch.nn.Conv2d(OUT_CHANNELS_2, 2*OUT_CHANNELS_2, 
+        self.conv2 = torch.nn.Conv2d(OUT_CHANNELS_2, 2*OUT_CHANNELS_2,
                                      kernel_size=KERNEL_SIZE, padding=0)
         self.fc1 = torch.nn.Linear(2*OUT_CHANNELS_2*5*5, nb_hidden)
         self.fc2 = torch.nn.Linear(nb_hidden, nb_hidden//2)
@@ -46,13 +46,13 @@ class Net2(torch.nn.Module):
     def __init__(self):
         super(Net2, self).__init__()
         # First convolution.
-        self.conv1 = torch.nn.Conv2d(IN_CHANNELS, OUT_CHANNELS_NET, 
+        self.conv1 = torch.nn.Conv2d(IN_CHANNELS, OUT_CHANNELS_NET,
                                      kernel_size=KERNEL_SIZE, padding=PADDING)
         # Second convolution.
         self.conv2 = torch.nn.Conv2d(OUT_CHANNELS_NET, OUT_CHANNELS_NET,
                                      kernel_size=KERNEL_SIZE, padding=0)
         # Third convolution.
-        self.conv3 = torch.nn.Conv2d(OUT_CHANNELS_NET, 2*OUT_CHANNELS_NET, 
+        self.conv3 = torch.nn.Conv2d(OUT_CHANNELS_NET, 2*OUT_CHANNELS_NET,
                                      kernel_size=3, padding=3//2)
         self.fc1 = torch.nn.Linear(2*OUT_CHANNELS_NET*5*5, NB_HIDDEN)
         self.fc2 = torch.nn.Linear(NB_HIDDEN, NB_HIDDEN//2)
@@ -79,10 +79,10 @@ class LeNet5(torch.nn.Module):
         super(LeNet5, self).__init__()
         # First convolution (In LeNet-5, 32x32 images are given as input. Here the images are 14x14.)
         # Padding of 2 for kernel size of 5 to avoid any crop. Output size: mini_batch_size x 1 x 14 x 14.
-        self.conv1 = torch.nn.Conv2d(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS_1, 
+        self.conv1 = torch.nn.Conv2d(in_channels=IN_CHANNELS, out_channels=OUT_CHANNELS_1,
                                      kernel_size=KERNEL_SIZE, padding=PADDING, bias=True, padding_mode='zeros')
         # Second convolution. Output size: mini_batch_size x 1 x 10 x 10.
-        self.conv2 = torch.nn.Conv2d(in_channels=OUT_CHANNELS_1, out_channels=OUT_CHANNELS_2, 
+        self.conv2 = torch.nn.Conv2d(in_channels=OUT_CHANNELS_1, out_channels=OUT_CHANNELS_2,
                                      kernel_size=KERNEL_SIZE, padding=0, bias=True, padding_mode='zeros')
         # Max-pooling. Output size: mini_batch_size x 1 x 5 x 5.
         self.max_pool_2 = torch.nn.MaxPool2d(kernel_size=POOLING_KERNEL_SIZE)
@@ -91,7 +91,7 @@ class LeNet5(torch.nn.Module):
         self.fc2 = torch.nn.Linear(NB_FEATURES, NB_FEATURES//2)
         self.fc3 = torch.nn.Linear(NB_FEATURES//2, NB_FEATURES//4)
         self.fc4 = torch.nn.Linear(NB_FEATURES//4, 10)
-    
+
     def forward(self, x):
         x = F.relu(self.conv1(x)) # convolve, then perform ReLU non-linearity
         x = F.relu(self.conv2(x)) # convolve, then perform ReLU non-linearity
@@ -101,5 +101,14 @@ class LeNet5(torch.nn.Module):
         x = F.relu(self.fc2(x)) # FC-2, then perform ReLU non-linearity
         x = F.relu(self.fc3(x)) # FC-2, then perform ReLU non-linearity
         x = self.fc4(x) # FC-4
-        
+
         return x
+
+def get_lenet5():
+    return LeNet5()
+
+def get_net2():
+    return Net2()
+
+def get_net():
+    return Net(300)
