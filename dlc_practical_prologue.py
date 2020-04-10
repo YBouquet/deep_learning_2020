@@ -34,7 +34,8 @@ parser.add_argument('-f', '--file',
                     help = 'quick hack for jupyter')
 
 # training parameters
-parser.add_argument('--batch_size', type=int, default=10)
+
+parser.add_argument('--batch_size', type=int, default=10, help = "Select the number of samples to work through before every update of the model parameters")
 parser.add_argument('--n_iter', type=int, default=25, help = 'Number of epochs')
 parser.add_argument('--lr', type = float, default = 1e-3, help = 'Learning rate for the optimizer')
 
