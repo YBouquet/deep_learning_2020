@@ -85,7 +85,6 @@ def main(args):
 
         if args.save and have_sum :
             dummy = model_tuple[1]()
-
             stdout = sys.stdout
             s = StringIO()
             sys.stdout = s
@@ -96,6 +95,7 @@ def main(args):
                 print("no summary")
             sys.stdout = stdout
             s.seek(0)
+            del(dummy)
             infos = {}
             infos['target'] = GETTERS_DICT[args.model][0]
             infos['model'] =  args.model
