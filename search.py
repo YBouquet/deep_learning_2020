@@ -89,43 +89,44 @@ def search(filename, dates = None,  model = None, target = None):
         if result.empty:
             print("No result")
         else:
-            print_result(result.drop_duplicates())
-        answer_dict = {'y':True, 'n':False}
-        while True:
-            try:
-                # Note: Python 2.x users should use raw_input, the equivalent of 3.x's input
-                inpt = input("Please enter the id of the test you want the details of: ")
-                idx = int(inpt)
+            answer_dict = {'y':True, 'n':False}
+            while True:
                 try:
-                    row = result.loc[idx]
-                    print("SUMMARY OF THE ARCHITECTURE ------------------------------------\n")
-                    print(base64.b64decode(row.summary).decode('utf-8'))
-                    print("HYPERPARAMETERS ------------------------------------------------\n")
-                    print("Optimizer: \t"+ row.optimizer + "\t|| Learning rate: \t"+str(row.learning_rate)+'\n')
-                    print("Epochs: \t"+str(row.epochs)+'\t|| Minibatch size: \t'+str(row.minibatch_size)+'\n')
-                except KeyError:
-                    print('Please choose a valid id !')
-                    continue
-                on_going = True
-                while True:
-                    bool = input("Continue? [Y/n]: ")
-                    if bool:
-                        try:
-                            on_going = answer_dict[bool.lower()]
-                        except KeyError:
-                            print("SERIOUSLY ?!")
-                            continue
+                    print_result(result.drop_duplicates())
+                    inpt = input("Please enter the id of the test you want the details of: ")
+                    idx = int(inpt)
+                    try:
+                        row = result.loc[idx]
+                        print("SUMMARY OF THE ARCHITECTURE ------------------------------------\n")
+                        print(base64.b64decode(row.summary).decode('utf-8'))
+                        print("HYPERPARAMETERS ------------------------------------------------\n")
+                        print("Optimizer: \t"+ row.optimizer + "\t|| Learning rate: \t"+str(row.learning_rate)+'\n')
+                        print("Epochs: \t"+str(row.epochs)+'\t|| Minibatch size: \t'+str(row.minibatch_size)+'\n')
+                    except KeyError:
+                        print('Please choose a valid id !')
+                        continue
+                    on_going = True
+                    while True:
+                        bool = input("Continue? [Y/n]: ")
+                        if bool:
+                            try:
+                                on_going = answer_dict[bool.lower()]
+                            except KeyError:
+                                print("SERIOUSLY ?!")
+                                continue
+                        break
+                    if on_going:
+                        continue
+                    else:
+                        break
+                except ValueError:
+                    if inpt == 'q':
+                        break
+                    else :
+                        print("The id is an integer !!!")
+                        continue
+                except KeyboardInterrupt:
                     break
-                if on_going:
-                    continue
-                else:
-                    break
-            except ValueError:
-                if inpt == 'q':
-                    break
-                else :
-                    print("The id is an integer !!!")
-                    continue
 def main(args):
     pd.set_option('display.expand_frame_repr', False)
     str_dates = args.dates.split(',')

@@ -21,7 +21,7 @@ except ImportError:
 
 import dlc_practical_prologue as prologue
 
-from bin_models import get_2channels
+from bin_models import get_2channels, get_2nets
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
 from train import train_model
@@ -32,12 +32,14 @@ from saver import save_csv
 
 GETTERS_DICT =  {
                     '2Channels': ('Binary', get_2channels, (2,14,14)),
+                    '2Nets': ('Binary', get_2nets, (2,14,14)),
                     'Net': ('Number', get_net, (1,14,14)),
                     'Net2': ('Number', get_net2, (1,14,14)),
                     'LeNet5': ('Number', get_lenet5, (1,14,14))
                 }
-PAIRS_NB = 1000
 
+PAIRS_NB = 1000
+AUGMENTATION_FOLDS = 9
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
@@ -53,7 +55,8 @@ def main(args):
     try:
         model_tuple = GETTERS_DICT[args.model]
         if model_tuple[0] == 'Binary':
-            tr_input, tr_target, _, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
+            tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
+            tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
             tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
         else:
             (tr_input, train_target,
