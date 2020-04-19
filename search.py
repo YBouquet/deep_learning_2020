@@ -59,7 +59,7 @@ def print_row(row):
                 ', Comments: ' + base64.b64decode(str(row.b64_comments)).decode("utf-8") +'\n')
 
 def print_result(dataframe):
-    dataframe.sort_values(by=['accuracy']).apply(lambda row : print_row(row), axis = 1)
+    dataframe.apply(lambda row : print_row(row), axis = 1)
 
 def search(filename, dates = None,  model = None, target = None):
     if not(os.path.isfile(filename)):
@@ -92,7 +92,10 @@ def search(filename, dates = None,  model = None, target = None):
             answer_dict = {'y':True, 'n':False}
             while True:
                 try:
-                    print_result(result.drop_duplicates())
+                    if args.best_acc :
+                        print_result(result.drop_duplicates().sort_values(by = ['accuracy'], ascending = False).head(1))
+                    else:
+                        print_result(result.drop_duplicates().sort_values(by = ['datetime']))
                     inpt = input("Please enter the id of the test you want the details of: ")
                     idx = int(inpt)
                     try:
@@ -166,7 +169,7 @@ if __name__ =='__main__':
     parser.add_argument('--dates', type = str, default = '', help = 'date format : DD-MM-YYY ; time format : hh:mm; overall format : date{1} time{0,1}, date{1} time{0,1}, ...')
     parser.add_argument('--model', type = str, default = None)
     parser.add_argument('--target', type = str, default = None)
-
+    parser.add_argument('--best_acc', type = bool, default = False, help ='get the test with the best accuracy in the selection')
     args = parser.parse_args()
     if args.filename:
         main(args)
