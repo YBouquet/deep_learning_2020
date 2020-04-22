@@ -6,11 +6,20 @@ import torch
 from torch import nn
 import torch.optim as optim
 
-def train_model(model, train_input, train_target, mini_batch_size, lr, num_epoch = 25):
+
+def decrease_learning_rate(lr, optimizer, e, num_epoch):
+    lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+
+def train_model(model, train_input, train_target, mini_batch_size, lr, num_epoch = 25, decrease_lr=False):
     criterion = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
     m_size = train_input.size(0)
     for e in range(num_epoch):
+        if decrease_lr:
+            decrease_learning_rate(lr, optimizer, e, num_epoch)
         running_loss = 0
         indices = torch.randperm(m_size)
         tr_sf_input = train_input[indices]

@@ -6,13 +6,13 @@ Created on Mon Apr  6 10:40:28 2020
 @authors: Thomas Fry, Yann BOUQUET
 """
 
-import argparse
 import torch
 import math
 
 import dlc_practical_prologue as prologue
 
 from bin_models import get_2channels
+from bin_v2_models import get_2_one_channel, get_one_image, get_2_LeNet5
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
 from train import train_model
@@ -23,6 +23,9 @@ from saver import save_csv
 
 GETTERS_DICT =  {
                     '2Channels': ('Binary', get_2channels),
+                    '2OneChannel' : ('Binary', get_2_one_channel),
+                    'OneImage' : ('Binary', get_one_image),
+                    'TwoLeNet5' : ('Binary', get_2_LeNet5),
                     'Net': ('Number', get_net),
                     'Net2': ('Number', get_net2),
                     'LeNet5': ('Number', get_lenet5)
@@ -80,7 +83,7 @@ def main(args):
             infos['minibatch_size'] = args.batch_size
             infos['accuracy'] = accuracy
             infos['f1_score'] = math.nan
-            infos[ 'roc'] = math.nan
+            infos['roc'] = math.nan
             infos['comments'] = args.comments
             save_csv('test_report.csv', infos)
     except KeyError:
