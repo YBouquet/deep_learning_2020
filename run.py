@@ -38,14 +38,15 @@ GETTERS_DICT =  {
                     '2Nets': ('Binary', get_2nets, (2,14,14)),
                     '2OneChannel' : ('Binary', get_2_one_channel, (2,14,14)),
                     'OneImage' : ('Binary', get_one_image, (2,14,14)),
-                    'TwoLeNet5' : ('Binary', get_2_LeNet5, (2,14,14)),
+                    '2LeNet5' : ('Binary', get_2_LeNet5, (2,14,14)),
                     'Net': ('Number', get_net, (1,14,14)),
                     'Net2': ('Number', get_net2, (1,14,14)),
                     'LeNet5': ('Number', get_lenet5, (1,14,14))
                 }
 
 PAIRS_NB = 1000
-AUGMENTATION_FOLDS = 9
+AUGMENTATION_FOLDS = 0
+DATA_DOUBLING = False
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
@@ -63,6 +64,8 @@ def main(args):
         if model_tuple[0] == 'Binary':
             tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
             tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
+            if DATA_DOUBLING:
+                tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
             tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
         else:
             (tr_input, train_target,
