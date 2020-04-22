@@ -9,9 +9,21 @@ Created on Mon Apr  6 10:40:28 2020
 import torch
 import math
 
+import base64
+
+have_sum = True
+import sys
+from io import StringIO
+
+try:
+    from torchsummary import summary
+except ImportError:
+    have_sum = False
+
 import dlc_practical_prologue as prologue
 
-from bin_models import get_2channels
+
+from bin_models import get_2channels, get_2nets
 from bin_v2_models import get_2_one_channel, get_one_image, get_2_LeNet5
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
@@ -22,16 +34,18 @@ import io_num_process
 from saver import save_csv
 
 GETTERS_DICT =  {
-                    '2Channels': ('Binary', get_2channels),
-                    '2OneChannel' : ('Binary', get_2_one_channel),
-                    'OneImage' : ('Binary', get_one_image),
-                    'TwoLeNet5' : ('Binary', get_2_LeNet5),
-                    'Net': ('Number', get_net),
-                    'Net2': ('Number', get_net2),
-                    'LeNet5': ('Number', get_lenet5)
+                    '2Channels': ('Binary', get_2channels, (2,14,14)),
+                    '2Nets': ('Binary', get_2nets, (2,14,14)),
+                    '2OneChannel' : ('Binary', get_2_one_channel, (2,14,14)),
+                    'OneImage' : ('Binary', get_one_image, (2,14,14)),
+                    'TwoLeNet5' : ('Binary', get_2_LeNet5, (2,14,14)),
+                    'Net': ('Number', get_net, (1,14,14)),
+                    'Net2': ('Number', get_net2, (1,14,14)),
+                    'LeNet5': ('Number', get_lenet5, (1,14,14))
                 }
-PAIRS_NB = 1000
 
+PAIRS_NB = 1000
+AUGMENTATION_FOLDS = 9
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
@@ -47,7 +61,8 @@ def main(args):
     try:
         model_tuple = GETTERS_DICT[args.model]
         if model_tuple[0] == 'Binary':
-            tr_input, tr_target, _, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
+            tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
+            tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
             tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
         else:
             (tr_input, train_target,
@@ -72,11 +87,25 @@ def main(args):
             print_error(args.model, 'test recognition', nb_test_recognition_errors, test_set_figures.size(0))
             nb_test_comparison_errors = io_num_process.compute_nb_comparison_errors(m_model, test_set_first_figures, test_set_second_figures, test_target_comparison, args.batch_size)
             accuracy = print_error(args.model, 'test comparison', nb_test_comparison_errors, test_target_comparison.size(0))
+        del(m_model)
 
-        if args.save :
+        if args.save and have_sum :
+            dummy = model_tuple[1]()
+            stdout = sys.stdout
+            s = StringIO()
+            sys.stdout = s
+            if torch.cuda.is_available():
+                dummy.cuda()
+                summary(dummy, model_tuple[2])
+            else:
+                print("no summary")
+            sys.stdout = stdout
+            s.seek(0)
+            del(dummy)
             infos = {}
             infos['target'] = GETTERS_DICT[args.model][0]
             infos['model'] =  args.model
+            infos['summary'] = base64.b64encode(s.read().encode('utf-8',errors = 'strict'))
             infos['optimizer'] = 'SGD'
             infos['learning_rate'] = args.lr
             infos['epochs'] = args.n_iter
@@ -85,6 +114,10 @@ def main(args):
             infos['f1_score'] = math.nan
             infos['roc'] = math.nan
             infos['comments'] = args.comments
+            if len(args.comments) == 0:
+                print("Don't put an empty string as a comment!")
+            else :
+                infos['b64_comments'] = base64.b64encode(args.comments.encode('utf-8',errors = 'strict'))
             save_csv('test_report.csv', infos)
     except KeyError:
         print('ERROR : model unknown')

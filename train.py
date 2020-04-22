@@ -14,7 +14,8 @@ def decrease_learning_rate(lr, optimizer, e, num_epoch):
 
 
 def train_model(model, train_input, train_target, mini_batch_size, lr, num_epoch = 25, decrease_lr=False):
-    criterion = nn.MSELoss()
+    model.train(True)
+    criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
     m_size = train_input.size(0)
     for e in range(num_epoch):
@@ -32,3 +33,4 @@ def train_model(model, train_input, train_target, mini_batch_size, lr, num_epoch
             optimizer.step()
             running_loss += loss.item()
         print("epoch {0:3d}, loss = {1:8.5f}".format(e, running_loss))
+    model.train(False)

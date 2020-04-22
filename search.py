@@ -7,9 +7,11 @@ import pandas as pd
 from datetime import datetime as dt, date as d
 import re
 import argparse
+import base64
 
 from saver import DATETIME_FMT
 
+#HEADER = ['datetime', 'target', 'model', 'summary', 'optimizer', 'learning_rate', 'epochs', 'minibatch_size', 'accuracy', 'f1_score', 'roc', 'b64_comments']
 
 def check_date_segment(date, min_date, max_date):
     return date <= max_date and date >= min_date
@@ -51,6 +53,13 @@ def __search_by_model__(dataframe, model):
 def __search_by_target__(dataframe, target):
     return dataframe[dataframe.target.apply(lambda x: x.lower() == target.lower())]
 
+def print_row(row):
+    print('ID = ' + str(row.name) + ', Date: ' + row.datetime + ', Model: ' + row.model + \
+                ', accuracy = ' + str(row.accuracy) +', f1 score = ' + str(row.f1_score) + ', roc = ' + str(row.roc) + \
+                ', Comments: ' + base64.b64decode(str(row.b64_comments)).decode("utf-8") +'\n')
+
+def print_result(dataframe):
+    dataframe.apply(lambda row : print_row(row), axis = 1)
 
 def search(filename, dates = None,  model = None, target = None):
     if not(os.path.isfile(filename)):
@@ -80,10 +89,49 @@ def search(filename, dates = None,  model = None, target = None):
         if result.empty:
             print("No result")
         else:
-            print(result.drop_duplicates())
-
-
+            answer_dict = {'y':True, 'n':False}
+            while True:
+                try:
+                    if args.best_acc :
+                        print_result(result.drop_duplicates().sort_values(by = ['accuracy'], ascending = False).head(1))
+                    else:
+                        print_result(result.drop_duplicates().sort_values(by = ['datetime']))
+                    inpt = input("Please enter the id of the test you want the details of: ")
+                    idx = int(inpt)
+                    try:
+                        row = result.loc[idx]
+                        print("SUMMARY OF THE ARCHITECTURE ------------------------------------\n")
+                        print(base64.b64decode(row.summary).decode('utf-8'))
+                        print("HYPERPARAMETERS ------------------------------------------------\n")
+                        print("Optimizer: \t"+ row.optimizer + "\t|| Learning rate: \t"+str(row.learning_rate)+'\n')
+                        print("Epochs: \t"+str(row.epochs)+'\t|| Minibatch size: \t'+str(row.minibatch_size)+'\n')
+                    except KeyError:
+                        print('Please choose a valid id !')
+                        continue
+                    on_going = True
+                    while True:
+                        bool = input("Continue? [Y/n]: ")
+                        if bool:
+                            try:
+                                on_going = answer_dict[bool.lower()]
+                            except KeyError:
+                                print("SERIOUSLY ?!")
+                                continue
+                        break
+                    if on_going:
+                        continue
+                    else:
+                        break
+                except ValueError:
+                    if inpt == 'q':
+                        break
+                    else :
+                        print("The id is an integer !!!")
+                        continue
+                except KeyboardInterrupt:
+                    break
 def main(args):
+    pd.set_option('display.expand_frame_repr', False)
     str_dates = args.dates.split(',')
     result = []
     for date in str_dates:
@@ -121,7 +169,7 @@ if __name__ =='__main__':
     parser.add_argument('--dates', type = str, default = '', help = 'date format : DD-MM-YYY ; time format : hh:mm; overall format : date{1} time{0,1}, date{1} time{0,1}, ...')
     parser.add_argument('--model', type = str, default = None)
     parser.add_argument('--target', type = str, default = None)
-
+    parser.add_argument('--best_acc', type = bool, default = False, help ='get the test with the best accuracy in the selection')
     args = parser.parse_args()
     if args.filename:
         main(args)
