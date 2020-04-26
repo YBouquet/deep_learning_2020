@@ -41,15 +41,19 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
         indices = build_kfold(train_input, k_fold)
         for k in range(k_fold):
+
             va_indices = indices[k]
             tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1)
+
+            if k_fold == 1:
+                va_indices, tr_indices = tr_indices, va_indices
 
             train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_ohe_figures[tr_indices])
             validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_ohe_figures[va_indices])
 
             dataloaders = {
                 TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
-                VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = min(mini_batch_size, va_indices.size(0)), shuffle = False)
+                VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
             }
 
             for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
@@ -57,6 +61,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                     model.train()
                 else:
                     model.eval()
+
                 running_loss = 0
 
                 for inputs, targets, figures in dataloaders[phase]:
@@ -75,16 +80,25 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                         loss.backward()
                         optimizer.step()
 
-                    running_loss += loss
+                        running_loss += loss / max(1., float(k_fold - 1))
+                    else :
+                        running_loss += loss
 
-                avg_loss[phase].append(running_loss)
+                avg_loss[phase].append(float(running_loss))
 
         logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
         logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
 
         temp_loss = torch.tensor(logs['loss'])
         temp_val_loss = torch.tensor(logs['val_loss'])
-        print('Epoch %3d / %3d \n\t Training \t\t\t min: %12.5f, max: %12.5f, cur: %12.5f\n\t Validation \t\t\t min: %12.5f, max: %12.5f, cur: %12.5f\n'\
-                    % (e+1, num_epoch, temp_loss.min(), temp_loss.max(), temp_loss[-1],temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1]))
 
+
+        format = 'Epoch %3d / %3d \n\t Training \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+        results = (e+1, num_epoch, temp_loss.min(), temp_loss.max(), temp_loss[-1])
+
+        if k_fold > 1:
+            format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+            results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
+
+        print(format % results)
     model.eval()
