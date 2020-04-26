@@ -39,7 +39,7 @@ GETTERS_DICT =  {
                 }
 
 PAIRS_NB = 1000
-AUGMENTATION_FOLDS = 9
+AUGMENTATION_FOLDS = 0
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
@@ -63,17 +63,21 @@ def main(args):
             test_set_figures, test_target_figures,
             test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(PAIRS_NB)
             tr_target = io_num_process.one_hot_encoding(train_target)
-
         m_model = model_tuple[1]()
         print("---------- START TRAINING ---------------")
-        train_model(m_model, tr_input, tr_target, args.batch_size, args.lr, num_epoch = args.n_iter)
+        try :
+                train_model(m_model, tr_input, tr_target, tr_figure_target, 10,  args.batch_size, args.lr, num_epoch = args.n_iter)
+        except KeyboardInterrupt:
+            del(m_model)
+            return
         print("----------- END TRAINING ----------------")
 
         if model_tuple[0] == 'Binary':
-            nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, args.batch_size)
-            print_error(args.model, 'train', nb_errors_train, tr_input.size(0))
-            nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, args.batch_size)
-            accuracy = print_error(args.model, 'test', nb_errors_test, te_input.size(0))
+
+                nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, args.batch_size)
+                print_error(args.model, 'train', nb_errors_train, tr_input.size(0))
+                nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, args.batch_size)
+                accuracy = print_error(args.model, 'test', nb_errors_test, te_input.size(0))
         else:
             nb_train_recognition_errors = io_num_process.compute_nb_recognition_errors(m_model, tr_input, train_target, args.batch_size)
             print_error(args.model, 'train recognition', nb_train_recognition_errors, tr_input.size(0))

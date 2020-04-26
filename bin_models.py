@@ -117,7 +117,7 @@ class Two_nets(nn.Module):
         num_1 = self.unshared_linear_1(shared_1.view(-1, 16*5*5))
         num_2 = self.unshared_linear_2(shared_2.view(-1, 16*5*5))
         comp = self.shared_linear(torch.cat((num_1, num_2), axis = 1))
-        return comp
+        return num_1, num_2, comp
 
 def get_2nets():
     return Two_nets(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
@@ -177,4 +177,3 @@ FN_PARAMETERS_2C = {
 
 def get_2channels():
     return Two_Channels(CN_PARAMETERS_2C, VECTOR_SIZE, FN_PARAMETERS_2C)
-        
