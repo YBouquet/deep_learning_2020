@@ -79,7 +79,7 @@ def main(args):
     m_model = model_tuple[1]()
     print("---------- START TRAINING ---------------")
     try :
-            train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.lr, num_epoch = args.n_iter)
+            train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.lr, args.n_iter)
     except KeyboardInterrupt:
         del(m_model)
         return
