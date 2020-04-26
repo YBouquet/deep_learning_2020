@@ -16,6 +16,7 @@ def targets_reshape(train_targets, test_targets, one_hot_encoding = True):
         return new_train, new_test
     return train_targets.view(-1,1), test_targets.view(-1,1)
 
+
 def nb_classification_errors(model, test_input, target, mini_batch_size):
     nb_errors = 0
 
@@ -27,6 +28,7 @@ def nb_classification_errors(model, test_input, target, mini_batch_size):
                 nb_errors = nb_errors + 1
 
     return nb_errors
+
 
 def data_augmentation(tr_input, tr_target, tr_figure_target, pairs_nb, nb_augmentation):
     data_augmentation_input = torch.zeros(nb_augmentation*pairs_nb,2,14,14)
@@ -45,3 +47,23 @@ def data_augmentation(tr_input, tr_target, tr_figure_target, pairs_nb, nb_augmen
     data_augmentation_figure_target = torch.cat((tr_figure_target, data_augmentation_figure_target))
 
     return (data_augmentation_input, data_augmentation_target, data_augmentation_figure_target)
+
+
+def data_doubling(tr_input, tr_target, tr_figure_target):
+    pairs_nb = tr_input.size(0)
+    data_augmentation_input = torch.zeros(2*pairs_nb,2,14,14)
+    data_augmentation_figure_target = torch.zeros(2*pairs_nb, 2, dtype=torch.long)
+
+    data_augmentation_input[:pairs_nb,0] = tr_input[:,0]
+    data_augmentation_input[pairs_nb:,0] = tr_input[:,1]
+    data_augmentation_input[:pairs_nb,1] = tr_input[:,1]
+    data_augmentation_input[pairs_nb:,1] = tr_input[:,0]
+   
+    data_augmentation_target = torch.cat((tr_target,1-tr_target))
+
+    data_augmentation_figure_target[:,0] = torch.cat((tr_figure_target[:,0],tr_figure_target[:,1]))
+    data_augmentation_figure_target[:,1] = torch.cat((tr_figure_target[:,1],tr_figure_target[:,0]))
+
+    return (data_augmentation_input, data_augmentation_target, data_augmentation_figure_target)
+
+
