@@ -15,6 +15,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 TRAINING_PHASE = 'train'
 VALIDATION_PHASE = 'validation'
 
+def decrease_learning_rate(lr, optimizer, e, num_epoch):
+    lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
 def build_kfold(train_input, k_fold):
     nrows = train_input.size(0)
     fold_size = int(nrows / k_fold)
@@ -27,7 +32,7 @@ def build_kfold(train_input, k_fold):
     return torch.stack(result)
 
 
-def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch=25, auxiliary_loss=True):
+def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch=25, auxiliary_loss=True, decrease_lr):
     criterion = nn.BCEWithLogitsLoss()
     auxiliary_criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
@@ -40,6 +45,10 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
         avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 
         indices = build_kfold(train_input, k_fold)
+
+        if decrease_lr:
+            decrease_learning_rate(lr, optimizer, e, num_epoch)
+
         for k in range(k_fold):
 
             va_indices = indices[k]
