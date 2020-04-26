@@ -116,7 +116,6 @@ def main(args):
             infos['accuracy'] = accuracy
             infos['f1_score'] = math.nan
             infos['roc'] = math.nan
-            infos['comments'] = args.comments
             if len(args.comments) == 0:
                 print("Don't put an empty string as a comment!")
             else :
