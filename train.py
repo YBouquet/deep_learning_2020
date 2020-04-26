@@ -5,12 +5,15 @@
 import torch
 from torch import nn
 import torch.optim as optim
+from torch.utils.data import TensorDataset, DataLoader
 
 from io_num_process import one_hot_encoding
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+TRAINING_PHASE = 'train'
+VALIDATION_PHASE = 'validation'
 
 def build_kfold(train_input, k_fold):
     nrows = train_input.size(0)
@@ -31,78 +34,53 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
     train_ohe_figures = torch.cat((one_hot_encoding(
         train_figures_target[:, 0]), one_hot_encoding(train_figures_target[:, 1])), axis=1)
 
+    logs = {'loss': [], 'val_loss': []}
+
     for e in range(num_epoch):
-        logs = {'loss': [], 'val_loss': []}
-        avg_train_loss = []
-        avg_val_loss = []
+        avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
+
         indices = build_kfold(train_input, k_fold)
         for k in range(k_fold):
             va_indices = indices[k]
-            tr_indices = indices[~(torch.arange(
-                indices.size(0)) == k)].view(-1)
+            tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1)
 
-            tr_sf_input = train_input[tr_indices]
-            va_sf_input = train_input[va_indices]
+            train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_ohe_figures[tr_indices])
+            validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_ohe_figures[va_indices])
 
-            tr_sf_target = train_target[tr_indices]
-            va_sf_target = train_target[va_indices]
+            dataloaders = {
+                TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
+                VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = min(mini_batch_size, va_indices.size(0)), shuffle = False)
+            }
 
-            tr_sf_figures = train_ohe_figures[tr_indices]
-            va_sf_figures = train_ohe_figures[va_indices]
+            for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
+                if phase == TRAINING_PHASE:
+                    model.train()
+                else:
+                    model.eval()
+                running_loss = 0
 
-            m_size = tr_sf_input.size(0)
-
-            model.train()
-
-            running_loss = 0
-            for b in range(0, m_size, mini_batch_size):
-                # (BATCH_SIZE, 2, 14,14)
-                outputs = model(tr_sf_input.narrow(0, b, mini_batch_size))
-                try:
-                    outputs = torch.stack(outputs)
-                    loss = criterion(
-                        outputs[-1], tr_sf_target.narrow(0, b, mini_batch_size).type_as(outputs[-1]))
-                    if auxiliary_loss:
-                        figures_batch = tr_sf_figures.narrow(
-                            0, b, minibatch_size)
-                        for i in range(2):
-                            loss += auxiliary_criterion(
-                                outputs[i], figures_batch[:, i].type(torch.LongTensor))
-                except TypeError:
-                    loss = criterion(outputs, tr_sf_target.narrow(
-                        0, b, mini_batch_size).type_as(outputs))
-
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                running_loss += loss
-            avg_train_loss.append(running_loss)
-
-            m_size = va_sf_input.size(0)
-            running_loss = 0
-            model.eval()
-            with torch.no_grad():
-                for b in range(0, m_size, mini_batch_size):
-                    # (BATCH_SIZE, 2, 14,14)
-                    outputs = model(va_sf_input.narrow(0, b, mini_batch_size))
+                for inputs, targets, figures in dataloaders[phase]:
+                    outputs = model(inputs)
                     try:
-                        outputs = torch.stack(outputs)
-                        loss = criterion(
-                            outputs[-1], va_sf_target.narrow(0, b, mini_batch_size).type_as(outputs[-1]))
+                        tuples = torch.stack(outputs)
+                        loss = criterion(tuples[-1], targets.type_as(tuples[-1]))
                         if auxiliary_loss:
-                            figures_batch = va_sf_figures.narrow(
-                                0, b, minibatch_size)
-                            for i in range(2):
-                                loss += auxiliary_criterion(
-                                    outputs[i], figures_batch[:, i].type(torch.LongTensor))
+                            for i in range(len(tuples) - 1):
+                                loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
                     except TypeError:
-                        loss = criterion(outputs, va_sf_target.narrow(
-                            0, b, mini_batch_size).type_as(outputs))
-                    running_loss += loss
-            avg_val_loss.append(running_loss)
+                        loss = criterion(outputs, targets.type_as(outputs))
 
-        logs['loss'].append(torch.tensor(avg_train_loss).mean())
-        logs['val_loss'].append(torch.tensor(avg_val_loss).mean())
+                    if phase == TRAINING_PHASE:
+                        optimizer.zero_grad()
+                        loss.backward()
+                        optimizer.step()
+
+                    running_loss += loss
+
+                avg_loss[phase].append(running_loss)
+
+        logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
+        logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
 
         temp_loss = torch.tensor(logs['loss'])
         temp_val_loss = torch.tensor(logs['val_loss'])
