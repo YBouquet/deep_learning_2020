@@ -22,6 +22,9 @@ def nb_classification_errors(model, test_input, target, mini_batch_size):
 
     for b in range(0, test_input.size(0), mini_batch_size):
         output = model(test_input.narrow(0, b, mini_batch_size))
+        if len(output)>1:
+            if len(output) == 3 :
+                _, _, output = output
         _, predicted_classes = output.max(1)
         for k in range(mini_batch_size):
             if target[b + k, predicted_classes[k]] <= 0:

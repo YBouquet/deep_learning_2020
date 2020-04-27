@@ -44,6 +44,7 @@ parser.add_argument('--lr', type = float, default = 1e-3, help = 'Learning rate 
 parser.add_argument('--model', type=str, default = '2Channels', help = "Select the network model") #define the library
 parser.add_argument('--comments', type=str, default = "No Comment", help = 'adding some comments about the process')
 parser.add_argument('--save', type=bool, default = False, help ='decide if we save the result in the log file')
+parser.add_argument('--k_fold', type=int, default = 1, help = 'Indicate how many folds are wanted for cross validation (cross validation deactivated by default)')
 args = parser.parse_args()
 
 if args.seed >= 0:
