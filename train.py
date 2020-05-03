@@ -32,11 +32,9 @@ def build_kfold(train_input, k_fold):
 
 
 def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch, auxiliary_loss=True, decrease_lr = False):
-    criterion = nn.BCEWithLogitsLoss()
+    criterion =nn.BCEWithLogitsLoss()
     auxiliary_criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
-    train_ohe_figures = torch.cat((one_hot_encoding(
-        train_figures_target[:, 0]), one_hot_encoding(train_figures_target[:, 1])), axis=1)
 
     logs = {'loss': [], 'val_loss': []}
 
@@ -56,8 +54,8 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
             if k_fold == 1:
                 va_indices, tr_indices = tr_indices, va_indices
 
-            train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_ohe_figures[tr_indices])
-            validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_ohe_figures[va_indices])
+            train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices])
+            validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_targetgit[va_indices])
 
             dataloaders = {
                 TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
