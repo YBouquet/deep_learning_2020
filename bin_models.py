@@ -121,6 +121,73 @@ class Two_nets(nn.Module):
 def get_2nets():
     return Two_nets(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
 
+class Two_nets_ws(nn.Module):
+    @staticmethod
+    def conv_unit(in_channels, out_channels, padding = 0, padding_mode = 'zeros', kernel_size = CONV_KERNEL):
+        return m_conv(in_channels, out_channels, kernel_size, padding = padding, padding_mode = padding_mode)
+
+    @staticmethod
+    def s_linear(in_features, hd_features, out_features):
+        block = nn.Sequential(
+            nn.Linear(in_features, hd_features),
+            nn.ReLU(),
+            nn.Linear(hd_features, out_features)
+
+        )
+        return block
+
+    @staticmethod
+    def u_linear(in_features, hd_features_1, hd_features_2, out_features):
+        block = nn.Sequential(
+            nn.Linear(in_features, hd_features_1),
+            nn.ReLU(),
+            nn.Linear(hd_features_1, hd_features_2),
+            nn.ReLU(),
+            nn.Linear(hd_features_2, out_features)
+        )
+        return block
+
+
+    def __init__(self, cn_u_parameters, fn_u_parameters, cn_s_parameters, fn_comp_parameters):
+        super(Two_nets_ws, self).__init__()
+        self.shared_conv_1 =   self.conv_unit(
+                                                cn_u_parameters['in_channels'],
+                                                cn_u_parameters['out_channels'],
+                                                padding = cn_u_parameters['padding']
+                                            )
+        self.shared_conv_2 =       nn.Sequential(
+                                                     nn.Conv2d(
+                                                            cn_s_parameters['in_channels'],
+                                                            cn_s_parameters['out_channels'],
+                                                            kernel_size = CONV_KERNEL,
+                                                            ),
+                                                     nn.MaxPool2d(kernel_size = POOLING_KERNEL),
+                                                     nn.ReLU(),
+                                                )
+        self.shared_linear_1 = self.u_linear(
+                                                fn_u_parameters['in_features'],
+                                                fn_u_parameters['hd_features_1'],
+                                                fn_u_parameters['hd_features_2'],
+                                                fn_u_parameters['out_features']
+                                            )
+        self.shared_linear_2 =     self.s_linear(
+                                                fn_comp_parameters['in_features'],
+                                                fn_comp_parameters['hd_features'],
+                                                fn_comp_parameters['out_features']
+                                            )
+    def forward(self, x):
+        unshared_1 = self.shared_conv_1(x[:,0].view(-1,1,14,14))
+        unshared_2 = self.shared_conv_1(x[:,1].view(-1,1,14,14))
+        shared_1 = self.shared_conv_2(unshared_1)
+        shared_2 = self.shared_conv_2(unshared_2)
+        num_1 = f.relu(self.shared_linear_1(shared_1.view(-1, 16*5*5)))
+        num_2 = f.relu(self.shared_linear_1(shared_2.view(-1, 16*5*5)))
+        comp = self.shared_linear_2(torch.cat((num_1, num_2), axis = 1))
+        return num_1, num_2, comp
+
+def get_2nets_ws():
+    return Two_nets(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
+    
 class Two_Channels(nn.Module):
 
     @staticmethod

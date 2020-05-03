@@ -89,7 +89,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                     else:
                         model.eval()
 
-                    running_loss = 0
+                    running_loss = []
 
                     for inputs, targets, figures in dataloaders[phase]:
                         outputs = model(inputs)
@@ -110,11 +110,9 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                             loss.backward()
                             optimizer.step()
 
-                            running_loss += loss * k_fold / max(1., float(k_fold - 1))
-                        else :
-                            running_loss += loss  * k_fold
+                        running_loss.append(loss)
 
-                    avg_loss[phase].append(float(running_loss))
+                    avg_loss[phase].append(torch.tensor(running_loss).mean())
 
                 logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
                 logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())

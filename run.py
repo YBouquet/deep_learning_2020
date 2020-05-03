@@ -23,7 +23,7 @@ except ImportError:
 import dlc_practical_prologue as prologue
 
 
-from bin_models import get_2channels, get_2nets
+from bin_models import get_2channels, get_2nets, get_2nets_ws
 from bin_v2_models import get_2_one_channel, get_one_image, get_2_LeNet5
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
@@ -34,14 +34,15 @@ import io_num_process
 from saver import save_csv
 
 GETTERS_DICT =  {
-                    '2Channels': ('Binary', get_2channels, (2,14,14)),
-                    '2Nets': ('Binary', get_2nets, (2,14,14)),
-                    '2OneChannel' : ('Binary', get_2_one_channel, (2,14,14)),
-                    'OneImage' : ('Binary', get_one_image, (2,14,14)),
-                    '2LeNet5' : ('Binary', get_2_LeNet5, (2,14,14)),
-                    'Net': ('Number', get_net, (1,14,14)),
-                    'Net2': ('Number', get_net2, (1,14,14)),
-                    'LeNet5': ('Number', get_lenet5, (1,14,14))
+                    '2channels': ('Binary', get_2channels, (2,14,14)),
+                    '2nets': ('Binary', get_2nets, (2,14,14)),
+                    '2nets_ws': ('Binary', get_2nets_ws, (2,14,14)),
+                    '2onechannel' : ('Binary', get_2_one_channel, (2,14,14)),
+                    'oneimage' : ('Binary', get_one_image, (2,14,14)),
+                    '2lenet5' : ('Binary', get_2_LeNet5, (2,14,14)),
+                    'net': ('Number', get_net, (1,14,14)),
+                    'net2': ('Number', get_net2, (1,14,14)),
+                    'lenet5': ('Number', get_lenet5, (1,14,14))
                 }
 
 PAIRS_NB = 1000
@@ -60,7 +61,7 @@ def main(args):
     if args.seed >= 0:
         torch.manual_seed(args.seed)
     try:
-        model_tuple = GETTERS_DICT[args.model]
+        model_tuple = GETTERS_DICT[args.model.lower()]
     except KeyError:
         print('ERROR : model unknown')
         return
