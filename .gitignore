@@ -4,6 +4,10 @@ data/
 # Test report files
 *.csv
 
+#temporary model dictionaries
+*.pth
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

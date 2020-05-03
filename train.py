@@ -15,6 +15,8 @@ from io_num_process import one_hot_encoding
 TRAINING_PHASE = 'train'
 VALIDATION_PHASE = 'validation'
 
+PATH = 'temp.pth'
+
 def decrease_learning_rate(lr, optimizer, e, num_epoch):
     lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
     for param_group in optimizer.param_groups:
@@ -38,10 +40,13 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
     logs = {'loss': [], 'val_loss': []}
 
-    for k in range(k_fold):
+    torch.save(model.state_dict(), PATH)
 
-        global_train_loss = []
-        global_valid_loss = []
+    global_train_loss = []
+    global_valid_loss = []
+    for k in range(k_fold):
+        model.load_state_dict(torch.load(PATH))
+
 
         indices = build_kfold(train_input, k_fold)
         va_indices = indices[k] # 1000/k_fold indices for validation
@@ -57,7 +62,6 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
             TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
             VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
         }
-
 
         for e in range(num_epoch):
             avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
