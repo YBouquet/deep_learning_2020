@@ -12,8 +12,11 @@ from io_num_process import one_hot_encoding
 
 #device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-TRAINING_PHASE = 'train'
-VALIDATION_PHASE = 'validation'
+TRAINING_PHASE = 'Train'
+VALIDATION_PHASE = 'Validation'
+
+PRETRAINING = 'Pretraining'
+TRAINING = 'Training'
 
 PATH = 'temp.pth'
 
@@ -44,6 +47,9 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
     global_train_loss = []
     global_valid_loss = []
+
+    epochs = {PRETRAINING : num_epoch, TRAINING : num_epoch}
+
     for k in range(k_fold):
         model.load_state_dict(torch.load(PATH))
 
@@ -63,60 +69,69 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
             VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
         }
 
-        for e in range(num_epoch):
-            avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
+        if auxiliary_loss:
+            steps = [PRETRAINING, TRAINING]
+        else:
+            steps = [TRAINING]
 
-            # size([k_fold, 1000/k_fold])
+        for step in steps:
+            for e in range(epochs[step]):
+                avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 
-            if decrease_lr:
-                decrease_learning_rate(lr, optimizer, e, num_epoch)
+                # size([k_fold, 1000/k_fold])
 
-            for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
-                if phase == TRAINING_PHASE:
-                    model.train()
-                else:
-                    model.eval()
+                if decrease_lr:
+                    decrease_learning_rate(lr, optimizer, e, num_epoch)
 
-                running_loss = 0
-
-                for inputs, targets, figures in dataloaders[phase]:
-                    outputs = model(inputs)
-                    try:
-                        tuples = torch.stack(outputs)
-                    except TypeError:
-                        loss = criterion(outputs, targets.type_as(outputs))
-                    except RuntimeError:
-                        tuples = outputs
-                        loss = criterion(tuples[-1], targets.type_as(tuples[-1]))
-                        if auxiliary_loss:
-                            for i in range(len(tuples) - 1):
-                                loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
+                for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
                     if phase == TRAINING_PHASE:
-                        optimizer.zero_grad()
-                        loss.backward()
-                        optimizer.step()
+                        model.train()
+                    else:
+                        model.eval()
 
-                        running_loss += loss * k_fold / max(1., float(k_fold - 1))
-                    else :
-                        running_loss += loss  * k_fold
+                    running_loss = 0
 
-                avg_loss[phase].append(float(running_loss))
+                    for inputs, targets, figures in dataloaders[phase]:
+                        outputs = model(inputs)
+                        try:
+                            tuples = torch.stack(outputs)
+                        except TypeError:
+                            loss = criterion(outputs, targets.type_as(outputs))
+                        except RuntimeError:
+                            tuples = outputs
+                            loss = criterion(tuples[-1], targets.type_as(tuples[-1]))
+                            if auxiliary_loss:
+                                if step == PRETRAINING :
+                                    loss = 0
+                                for i in range(len(tuples) - 1):
+                                    loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
+                        if phase == TRAINING_PHASE:
+                            optimizer.zero_grad()
+                            loss.backward()
+                            optimizer.step()
 
-            logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
-            logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
+                            running_loss += loss * k_fold / max(1., float(k_fold - 1))
+                        else :
+                            running_loss += loss  * k_fold
 
-            temp_loss = torch.tensor(logs['loss'])
-            temp_val_loss = torch.tensor(logs['val_loss'])
+                    avg_loss[phase].append(float(running_loss))
+
+                logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
+                logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
+
+                temp_loss = torch.tensor(logs['loss'])
+                temp_val_loss = torch.tensor(logs['val_loss'])
 
 
-            format = 'Epoch %3d / %3d \n\t Training \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-            results = (e+1, num_epoch, temp_loss.min(), temp_loss.max(), temp_loss[-1])
+                format = 'Epoch %3d / %3d \n\t %s \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+                results = (e+1, epochs[step], step, temp_loss.min(), temp_loss.max(), temp_loss[-1])
 
-            if k_fold > 1:
-                format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-                results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
+                if k_fold > 1:
+                    format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+                    results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-            print(format % results)
+                print(format % results)
+
         global_train_loss.append(temp_loss[-1])
         global_valid_loss.append(temp_val_loss[-1])
 
