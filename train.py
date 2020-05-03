@@ -38,29 +38,34 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
     logs = {'loss': [], 'val_loss': []}
 
-    for e in range(num_epoch):
-        avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
+    for k in range(k_fold):
 
-        indices = build_kfold(train_input, k_fold) # size([k_fold, 1000/k_fold])
+        global_train_loss = []
+        global_valid_loss = []
 
-        if decrease_lr:
-            decrease_learning_rate(lr, optimizer, e, num_epoch)
+        indices = build_kfold(train_input, k_fold)
+        va_indices = indices[k] # 1000/k_fold indices for validation
+        tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1) # (k_fold-1) * 1000 / k_fold indices (the rest)
 
-        for k in range(k_fold):
+        if k_fold == 1:
+            va_indices, tr_indices = tr_indices, va_indices
 
-            va_indices = indices[k] # 1000/k_fold indices for validation
-            tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1) # (k_fold-1) * 1000 / k_fold indices (the rest)
+        train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices])
+        validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_target[va_indices])
 
-            if k_fold == 1:
-                va_indices, tr_indices = tr_indices, va_indices
+        dataloaders = {
+            TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
+            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
+        }
 
-            train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices])
-            validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_targetgit[va_indices])
 
-            dataloaders = {
-                TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
-                VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
-            }
+        for e in range(num_epoch):
+            avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
+
+            # size([k_fold, 1000/k_fold])
+
+            if decrease_lr:
+                decrease_learning_rate(lr, optimizer, e, num_epoch)
 
             for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
                 if phase == TRAINING_PHASE:
@@ -93,19 +98,29 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
                 avg_loss[phase].append(float(running_loss))
 
-        logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
-        logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
+            logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
+            logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
 
-        temp_loss = torch.tensor(logs['loss'])
-        temp_val_loss = torch.tensor(logs['val_loss'])
+            temp_loss = torch.tensor(logs['loss'])
+            temp_val_loss = torch.tensor(logs['val_loss'])
 
 
-        format = 'Epoch %3d / %3d \n\t Training \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-        results = (e+1, num_epoch, temp_loss.min(), temp_loss.max(), temp_loss[-1])
+            format = 'Epoch %3d / %3d \n\t Training \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+            results = (e+1, num_epoch, temp_loss.min(), temp_loss.max(), temp_loss[-1])
 
-        if k_fold > 1:
-            format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-            results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
+            if k_fold > 1:
+                format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+                results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-        print(format % results)
+            print(format % results)
+        global_train_loss.append(temp_loss[-1])
+        global_valid_loss.append(temp_val_loss[-1])
+
+    format = 'Mean Final Loss \n\t Training :\t %8.5f\n'
+    results = [torch.tensor(global_train_loss).mean()]
+
+    if k_fold > 1 :
+        format += '\t Validation :\t %8.5f\n'
+        results.append(torch.tensor(global_valid_loss).mean())
+    print(format % tuple(results))
     model.eval()
