@@ -115,7 +115,7 @@ def main(args):
         s.seek(0)
         del(dummy)
         infos = {}
-        infos['target'] = GETTERS_DICT[args.model][0]
+        infos['target'] = model_tuple[0]
         infos['model'] =  args.model
         infos['summary'] = base64.b64encode(s.read().encode('utf-8',errors = 'strict'))
         infos['optimizer'] = 'SGD'

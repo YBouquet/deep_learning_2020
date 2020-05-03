@@ -186,8 +186,8 @@ class Two_nets_ws(nn.Module):
         return num_1, num_2, comp
 
 def get_2nets_ws():
-    return Two_nets(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
-    
+    return Two_nets_ws(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
+
 class Two_Channels(nn.Module):
 
     @staticmethod
