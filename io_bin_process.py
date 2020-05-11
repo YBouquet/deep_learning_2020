@@ -22,12 +22,14 @@ def nb_classification_errors(model, test_input, target, mini_batch_size):
 
     for b in range(0, test_input.size(0), mini_batch_size):
         output = model(test_input.narrow(0, b, mini_batch_size))
-        if len(output)>1:
+        if isinstance(output, tuple):
             if len(output) == 3 :
                 _, _, output = output
+            else:
+                raise Exception('ERROR', 'the output of the model isn\'t recognized')
         _, predicted_classes = output.max(1)
         for k in range(mini_batch_size):
-            if target[b + k, predicted_classes[k]] <= 0:
+            if target[b + k] != predicted_classes[k]:
                 nb_errors = nb_errors + 1
 
     return nb_errors
@@ -61,12 +63,10 @@ def data_doubling(tr_input, tr_target, tr_figure_target):
     data_augmentation_input[pairs_nb:,0] = tr_input[:,1]
     data_augmentation_input[:pairs_nb,1] = tr_input[:,1]
     data_augmentation_input[pairs_nb:,1] = tr_input[:,0]
-   
+
     data_augmentation_target = torch.cat((tr_target,1-tr_target))
 
     data_augmentation_figure_target[:,0] = torch.cat((tr_figure_target[:,0],tr_figure_target[:,1]))
     data_augmentation_figure_target[:,1] = torch.cat((tr_figure_target[:,1],tr_figure_target[:,0]))
 
     return (data_augmentation_input, data_augmentation_target, data_augmentation_figure_target)
-
-

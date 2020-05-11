@@ -37,7 +37,7 @@ def build_kfold(train_input, k_fold):
 
 
 def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch, auxiliary_loss=True, decrease_lr = False):
-    criterion =nn.BCEWithLogitsLoss()
+    criterion =nn.CrossEntropyLoss()
     auxiliary_criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
 
@@ -87,10 +87,10 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                 for inputs, targets, figures in dataloaders[phase]:
                     outputs = model(inputs)
                     if not(isinstance(outputs, tuple)):
-                        loss = criterion(outputs, targets.type_as(outputs))
+                        loss = criterion(outputs, targets.type(torch.LongTensor))
                     else:
                         tuples = outputs
-                        loss = criterion(tuples[-1], targets.type_as(tuples[-1]))
+                        loss = criterion(tuples[-1], targets.type(torch.LongTensor))
                         if auxiliary_loss:
                             for i in range(len(tuples) - 1):
                                 loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))

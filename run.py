@@ -71,7 +71,7 @@ def main(args):
         tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
         if DATA_DOUBLING:
             tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
-        tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
+        #tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
     else:
         (tr_input, train_target,
         test_set_figures, test_target_figures,
