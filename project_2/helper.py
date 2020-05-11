@@ -7,9 +7,6 @@ Created on Sun May 10 08:51:08 2020
 """
 ### Python modules
 import math
-import random
-#import statistics 
-import torch
 from torch import empty
 
 ### Project modules
@@ -18,7 +15,7 @@ import modules
 
 ### Stochastic gradient descent
 class SGD():
-    def __init__(self, params, lr = 1e-2):
+    def __init__(self, params, lr):
         self.lr = lr
         self.params = params
     def step(self):
@@ -30,31 +27,20 @@ class SGD():
 
 
 def generate_sets(size = 1000, seed = 1):
-    random.seed(seed)
     center = 0.5
     radius = 1 / math.sqrt(2*math.pi)
-    train_set  = empty(size, 2)
-    test_set = empty(size, 2)
-    train_target = empty(size)
-    test_target = empty(size)
-    
-    for i, point in enumerate(train_set):
-        point[0] = random.uniform(0,1)
-        point[1] = random.uniform(0,1)
-        train_target[i] = (math.hypot(center - point[0], center - point[1]) <= radius ) *1
-        
-    for i, point in enumerate(test_set):
-        point[0] = random.uniform(0,1)
-        point[1] = random.uniform(0,1)
-        test_target[i] = (math.hypot(center - point[0], center - point[1]) <= radius ) *1
+    train_set  = empty(size, 2).uniform_(0, 1)
+    test_set = empty(size, 2).uniform_(0, 1)
+    train_target = ((center - train_set).norm(dim = 1) <= radius) * 1
+    test_target = ((center - test_set).norm(dim = 1) <= radius) * 1
     
     return train_set, train_target.int(), test_set, test_target.int()
 
 
 ### One-hot encoding
 def ohe(train_targets, test_targets):
-    new_train = torch.zeros((train_targets.size()[0],2))
-    new_test = torch.zeros((train_targets.size()[0],2))
+    new_train = empty((train_targets.size()[0],2)).zero_() 
+    new_test = empty((train_targets.size()[0],2)).zero_() 
     for i,b in enumerate(train_targets.tolist()):
         new_train[i,b] = 1
     for i,b in enumerate(test_targets.tolist()):
@@ -62,9 +48,9 @@ def ohe(train_targets, test_targets):
     return new_train, new_test
 
 
-def train_model(model, train_input, train_target, test_input, test_target, lr = 1e-2, num_epoch = 25):
+def train_model(model, train_input, train_target, test_input, test_target, lr, num_epoch):
     criterion = modules.LossMSE()
-    optimizer = SGD(model.param(), lr=lr)
+    optimizer = SGD(model.param(), lr)
     losses_train = []
     losses_test = []
     n = train_input.size(0)

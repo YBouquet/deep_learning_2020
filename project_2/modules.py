@@ -7,14 +7,10 @@ Created on Sun May 10 07:34:30 2020
 """
 
 ### Python modules
-import torch
 from torch import empty
 import math
 
 
-
-
-torch.set_grad_enabled(False) # here?
 
 
 class Module(object):
@@ -73,7 +69,6 @@ class Tanh(Module):
 
 class Linear(Module):
     def __init__(self, in_features, out_features, gain = 1):
-        torch.manual_seed(1)
         xavier_std = gain * math.sqrt(2./(in_features + out_features))
         self.w = empty(out_features, in_features).normal_(mean = 0., std = xavier_std)
         self.b = empty(out_features).normal_(mean = 0., std = 1)

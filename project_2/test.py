@@ -7,12 +7,14 @@ Created on Sun May 10 08:51:08 2020
 """
 ### Python modules
 #from matplotlib import pyplot as plt
-
+import torch
 
 ### Project modules
 import modules
 import helper
 import arguments
+
+### To do: plot with the ratio 
 
 
 DICT = { 
@@ -24,6 +26,8 @@ DICT = {
 # Implémenter ratio validation, plot graph
 # tanh not working
 def main(args):
+    torch.set_grad_enabled(False)
+    torch.manual_seed(1)
     train_set, train_target,test_set, test_target = helper.generate_sets(size = 1000)
     train_target, test_target = helper.ohe(train_target, test_target)
     
@@ -43,7 +47,7 @@ def main(args):
     #plt.plot(range(NUM_EPOCHS), train_l, 'r', range(NUM_EPOCHS), test_l, 'b')
     
     nb_errors = helper.nb_classification_errors(m_model, test_set, test_target)
-    helper.print_error(args.acti_fct_1, nb_errors, 1000)
+    helper.print_error(args.acti_fct_1+'_'+args.acti_fct_2+'_'+args.acti_fct_3, nb_errors, 1000)
 
 
 if __name__ == '__main__':
