@@ -207,7 +207,6 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                         logs[step][phase].append(torch.tensor(avg_loss[phase]).mean())
 
                 temp_loss = torch.tensor(logs[step][TRAINING_PHASE])
-                print(temp_loss)
                 format = 'Epoch %3d / %3d \n\t %s \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                 results = (e+1, epochs[step], step, temp_loss.min(), temp_loss.max(), temp_loss[-1])
 
@@ -216,7 +215,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                     format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                     results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-                print(format % results)
+                #print(format % results)
 
 
     for k,v in logs.items():
@@ -237,11 +236,14 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
     return logs
 
 
-def grid_search(model, filename, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lrt_array = [], wdt_array = [], nep_array = [], lrp_array = [], wdp_array = [], wal_array = []):
+def grid_search(model, filename, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lrt_array = [], wdt_array = [], nep_array = [], lrp_array = [], wdp_array = [], wal_array = []):
     torch.save(model.state_dict(), filename)
 
-    size = [len(lrt_array),len(wdt_array),len(nep_array),len(lrp_array),len(wdp_array),len(wal_array)]
-    results = torch.empty(tuple(size))
+    size = [len(lrt_array),len(wdt_array),len(nep_array),len(lrp_array),len(wdp_array),len(wal_array),2]
+
+    results = torch.empty(tuple(size)).fill_(float('inf'))
+    min_ = float('inf')
+    indices = (0,0,0,0,0,0)
 
     for a, learning_rate_train in enumerate(lrt_array):
         for b, weight_decay_train in enumerate(wdt_array):
@@ -249,7 +251,25 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
                 for d, learning_rate_pretrain in enumerate(lrp_array):
                     for e, weight_decay_pretrain in enumerate(wdp_array):
                         for f, weight_auxiliary_loss in enumerate(wal_array):
+                            print(1 +   f + \
+                                        e * len(wal_array) + \
+                                        d * len(wal_array) *len(wdp_array) + \
+                                        c * len(wal_array) *len(wdp_array) *len(lrp_array) + \
+                                        b * len(wal_array) *len(wdp_array) *len(lrp_array) *len(nep_array)+ \
+                                        a * len(wal_array) *len(wdp_array) *len(lrp_array) *len(wdt_array))
+
                             model.load_state_dict(torch.load(filename))
-                            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, num_epoch_train, lr_train = learning_rate_train, weight_decay_train = weight_decay_train, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = learning_rate_pretrain, weight_decay_pretrain = weight_decay_pretrain, weight_auxiliary_loss = weight_auxiliary_loss)
-                            results[a,b,c,d,e,f] = (temp[TRAINING][TRAINING_PHASE][-1], temp[TRAINING][VALIDATION_PHASE][-1])
-    return results
+                            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train, weight_decay_train = weight_decay_train, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = learning_rate_pretrain, weight_decay_pretrain = weight_decay_pretrain, weight_auxiliary_loss = weight_auxiliary_loss)
+
+                            result = temp[TRAINING][TRAINING_PHASE][-1]
+                            results[a,b,c,d,e,f, 0] = result
+
+                            if k_fold > 1:
+                                result = temp[TRAINING][VALIDATION_PHASE][-1]
+                                results[a,b,c,d,e,f, 1] = result
+
+                            if result < min_:
+                                min_ = result
+                                values = (learning_rate_train,weight_decay_train,num_epoch_pretrain,learning_rate_pretrain,weight_decay_pretrain,weight_auxiliary_loss)
+
+    return results, min_, values

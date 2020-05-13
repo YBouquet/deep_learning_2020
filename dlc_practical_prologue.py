@@ -35,13 +35,13 @@ parser.add_argument('-f', '--file',
 
 # training parameters
 
-parser.add_argument('--batch_size', type=int, default=10, help = "Select the number of samples to work through before every update of the model parameters")
+parser.add_argument('--batch_size', type=int, default=100, help = "Select the number of samples to work through before every update of the model parameters")
 parser.add_argument('--n_iter', type=int, default=25, help = 'Number of epochs')
 parser.add_argument('--lr', type = float, default = 1e-3, help = 'Learning rate for the optimizer')
 
 #model definition
 #parser.add_argument('--targets', type=str) #define the library
-parser.add_argument('--model', type=str, default = '2Channels', help = "Select the network model") #define the library
+parser.add_argument('--model', type=str, default = '2nets', help = "Select the network model") #define the library
 parser.add_argument('--comments', type=str, default = "No Comment", help = 'adding some comments about the process')
 parser.add_argument('--save', type=bool, default = False, help ='decide if we save the result in the log file')
 parser.add_argument('--k_fold', type=int, default = 1, help = 'Indicate how many folds are wanted for cross validation (cross validation deactivated by default)')
