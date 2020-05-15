@@ -1,48 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr  6 10:40:28 2020
-
-@authors: Thomas Fry, Yann BOUQUET
-"""
-
 import torch
+import time
 import math
-
-import base64
-
-have_sum = True
-import sys
-from io import StringIO
-
-try:
-    from torchsummary import summary
-except ImportError:
-    have_sum = False
 
 import dlc_practical_prologue as prologue
 
 
-from bin_models import get_2channels, get_2nets, get_2nets_ws
-from bin_v2_models import get_2_one_channel, get_one_image, get_2_LeNet5
-from number_recognition_architectures import get_net, get_net2, get_lenet5
+from bin_models import get_2nets, get_2nets_ws
 
-from train import train_model, pretrain_train_model
+from train import train_model
 import io_bin_process
 import io_num_process
 
 from saver import save_csv
 
 GETTERS_DICT =  {
-                    '2channels': ('Binary', get_2channels, (2,14,14)),
                     '2nets': ('Binary', get_2nets, (2,14,14)),
                     '2nets_ws': ('Binary', get_2nets_ws, (2,14,14)),
-                    '2onechannel' : ('Binary', get_2_one_channel, (2,14,14)),
-                    'oneimage' : ('Binary', get_one_image, (2,14,14)),
-                    '2lenet5' : ('Binary', get_2_LeNet5, (2,14,14)),
-                    'net': ('Number', get_net, (1,14,14)),
-                    'net2': ('Number', get_net2, (1,14,14)),
-                    'lenet5': ('Number', get_lenet5, (1,14,14))
                 }
 
 PAIRS_NB = 1000
@@ -50,12 +23,6 @@ AUGMENTATION_FOLDS = 0
 DATA_DOUBLING = False
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
-
-def print_error(name, error_type, nb_errors, size_):
-    error_rate = (100 * nb_errors) / size_
-    print(error_type + ' error '+ name +': {:0.2f}% {:d}/{:d}'.format(error_rate,
-                                                      nb_errors, size_))
-    return 100. - error_rate
 
 def main(args):
     if args.seed >= 0:
@@ -77,11 +44,12 @@ def main(args):
         test_set_figures, test_target_figures,
         test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(PAIRS_NB)
         tr_target = io_num_process.one_hot_encoding(train_target)
+
     m_model = model_tuple[1]()
     print("---------- START TRAINING ---------------")
     try :
             #pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1.)
-            results = pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.n_iter, lr_train = args.lr, num_epoch_pretrain = 0, lr_pretrain = 1e-4, weight_auxiliary_loss = 1.)
+            results = train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.n_iter, lr_train = args.lr, num_epoch_pretrain = 0, lr_pretrain = 1e-4, weight_auxiliary_loss = 1.)
     except KeyboardInterrupt:
         del(m_model)
         return

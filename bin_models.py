@@ -39,7 +39,7 @@ FN_U_PARAMETERS = {
 
 FN_COMP_PARAMETERS = {
     'in_features' : 20,
-    'hd_features' : 500,
+    'hd_features' : 8,
     'out_features' : 2
 }
 

@@ -167,7 +167,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
         epochs = {PRETRAINING : num_epoch_pretrain, TRAINING : num_epoch_train}
         lrs = {PRETRAINING: lr_pretrain, TRAINING: lr_train}
         aux_weights = {PRETRAINING: 1., TRAINING: weight_auxiliary_loss}
-        decays = {PRETRAINING: weight_decay_train, TRAINING : weight_decay_pretrain}
+        decays = {PRETRAINING: weight_decay_pretrain, TRAINING : weight_decay_train}
 
         for step in [PRETRAINING, TRAINING]:
             optimizer = optim.SGD(model.parameters(), lr=lrs[step], weight_decay = decays[step])
@@ -223,12 +223,19 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
             if v_v:
                 logs[k][k_v] = torch.tensor(v_v).view(k_fold,-1).mean(0)
 
-    format = 'Mean Final Loss \n\t Training :\t %8.5f\n'
-    results = [logs[TRAINING][TRAINING_PHASE][-1]]
+    format = 'Mean Final Loss \n\t %s :\t %8.5f\n'
+    results = [TRAINING]
+    if len(logs[TRAINING][TRAINING_PHASE]):
+        results.append(logs[TRAINING][TRAINING_PHASE][-1])
 
-    if k_fold > 1 :
-        format += '\t Validation :\t %8.5f\n'
-        results.append(logs[TRAINING][VALIDATION_PHASE][-1])
+        if k_fold > 1 :
+            format += '\t Validation :\t %8.5f\n'
+            results.append(logs[TRAINING][VALIDATION_PHASE][-1])
+    else:
+        results = [PRETRAINING, logs[PRETRAINING][TRAINING_PHASE][-1]]
+        if k_fold > 1 :
+            format += '\t Validation :\t %8.5f\n'
+            results.append(logs[PRETRAINING ][VALIDATION_PHASE][-1])
     print(format % tuple(results))
     model.eval()
 
@@ -236,40 +243,125 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
     return logs
 
 
-def grid_search(model, filename, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lrt_array = [], wdt_array = [], nep_array = [], lrp_array = [], wdp_array = [], wal_array = []):
+def grid_search(model, filename, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lrt_array = [], wdt_array = [], num_epoch_pretrain = 50, lrp_array = [], wdp_array = [], wal_array = [], seed = 0):
     torch.save(model.state_dict(), filename)
-
+    '''
     size = [len(lrt_array),len(wdt_array),len(nep_array),len(lrp_array),len(wdp_array),len(wal_array),2]
 
     results = torch.empty(tuple(size)).fill_(float('inf'))
+    '''
+    train_final_results = {}
+    pretrain_final_results = {}
+    mins = []
+    values = []
+
+    '''
+    print("PRETRAINING OPTIMIZATION STARTED")
     min_ = float('inf')
-    indices = (0,0,0,0,0,0)
+    value = 0.
+    try :
+        for learning_rate_pretrain in lrp_array:
 
-    for a, learning_rate_train in enumerate(lrt_array):
-        for b, weight_decay_train in enumerate(wdt_array):
-            for c, num_epoch_pretrain in enumerate(nep_array):
-                for d, learning_rate_pretrain in enumerate(lrp_array):
-                    for e, weight_decay_pretrain in enumerate(wdp_array):
-                        for f, weight_auxiliary_loss in enumerate(wal_array):
-                            print(1 +   f + \
-                                        e * len(wal_array) + \
-                                        d * len(wal_array) *len(wdp_array) + \
-                                        c * len(wal_array) *len(wdp_array) *len(lrp_array) + \
-                                        b * len(wal_array) *len(wdp_array) *len(lrp_array) *len(nep_array)+ \
-                                        a * len(wal_array) *len(wdp_array) *len(lrp_array) *len(wdt_array))
+            model.load_state_dict(torch.load(filename))
+            torch.manual_seed(seed)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, 0, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = learning_rate_pretrain)
+            result = temp[PRETRAINING][TRAINING_PHASE][-1]
+            if k_fold > 1:
+                result = temp[PRETRAINING][VALIDATION_PHASE][-1]
 
-                            model.load_state_dict(torch.load(filename))
-                            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train, weight_decay_train = weight_decay_train, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = learning_rate_pretrain, weight_decay_pretrain = weight_decay_pretrain, weight_auxiliary_loss = weight_auxiliary_loss)
+            if result < min_:
+                min_ = result
+                value = learning_rate_pretrain
 
-                            result = temp[TRAINING][TRAINING_PHASE][-1]
-                            results[a,b,c,d,e,f, 0] = result
+        best_learning_rate_pretrain = value
+        values.append(value)
+        mins.append(min_)
 
-                            if k_fold > 1:
-                                result = temp[TRAINING][VALIDATION_PHASE][-1]
-                                results[a,b,c,d,e,f, 1] = result
+        min_ = float('inf')
+        value = 0.
+        for weight_decay_pretrain in wdp_array:
 
-                            if result < min_:
-                                min_ = result
-                                values = (learning_rate_train,weight_decay_train,num_epoch_pretrain,learning_rate_pretrain,weight_decay_pretrain,weight_auxiliary_loss)
+            model.load_state_dict(torch.load(filename))
+            torch.manual_seed(seed)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, 0, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = best_learning_rate_pretrain, weight_decay_pretrain = weight_decay_pretrain)
 
-    return results, min_, values
+            result = temp[PRETRAINING][TRAINING_PHASE][-1]
+            if k_fold > 1:
+                result = temp[PRETRAINING][VALIDATION_PHASE][-1]
+
+            if result < min_:
+                min_ = result
+                value = weight_decay_pretrain
+        best_weight_decay_pretrain = value
+        values.append(value)
+        mins.append(min_)
+
+        print('\nEND OF PRETRAINING OPTIMIZATION\n')
+        model.load_state_dict(torch.load(filename))
+        torch.manual_seed(seed)
+        pretrain_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, 0, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = best_learning_rate_pretrain, weight_decay_pretrain = best_weight_decay_pretrain)
+        torch.save(model.state_dict(), filename)
+
+        print('\nPRETRAINED MODEL SUCCESSFULLY REGISTERED\n')
+    '''
+    try :
+        print('\nTRAINING OPTIMIZATION STARTED\n')
+        min_ = float('inf')
+        value = 0.
+        for learning_rate_train in lrt_array:
+            model.load_state_dict(torch.load(filename))
+            torch.manual_seed(seed)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train)
+            result = temp[TRAINING][TRAINING_PHASE][-1]
+            if k_fold > 1:
+                result = temp[TRAINING][VALIDATION_PHASE][-1]
+
+            if result < min_:
+                min_ = result
+                value = learning_rate_train
+        best_learning_rate_train = value
+        values.append(value)
+        mins.append(min_)
+
+        min_ = float('inf')
+        value = 0.
+        for weight_auxiliary_loss in wal_array:
+            model.load_state_dict(torch.load(filename))
+            torch.manual_seed(seed)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_auxiliary_loss = weight_auxiliary_loss )
+            result = temp[TRAINING][TRAINING_PHASE][-1]
+            if k_fold > 1:
+                result = temp[TRAINING][VALIDATION_PHASE][-1]
+
+            if result < min_:
+                min_ = result
+                value = weight_auxiliary_loss
+        best_weight_auxiliary_loss = weight_auxiliary_loss
+        values.append(value)
+        mins.append(min_)
+
+        min_ = float('inf')
+        value = 0.
+        for weight_decay_train in wdt_array:
+            model.load_state_dict(torch.load(filename))
+            torch.manual_seed(seed)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_decay_train = weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
+            result = temp[TRAINING][TRAINING_PHASE][-1]
+            if k_fold > 1:
+                result = temp[TRAINING][VALIDATION_PHASE][-1]
+
+            if result < min_:
+                min_ = result
+                value = weight_decay_train
+        best_weight_decay_train = weight_decay_train
+        values.append(value)
+        mins.append(min_)
+
+        model.load_state_dict(torch.load(filename))
+        torch.manual_seed(seed)
+        train_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size,n_epochs, lr_train = best_learning_rate_train, weight_decay_train = best_weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
+        torch.save(model.state_dict(), filename)
+        print('\nEND OF TRAINING OPTIMIZATION\n')
+    except KeyboardInterrupt:
+        return train_final_results, pretrain_final_results, mins, values
+    return train_final_results, pretrain_final_results, mins, values
