@@ -207,13 +207,14 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                         logs[step][phase].append(torch.tensor(avg_loss[phase]).mean())
 
                 temp_loss = torch.tensor(logs[step][TRAINING_PHASE])
-                format = 'Epoch %3d / %3d \n\t %s \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-                results = (e+1, epochs[step], step, temp_loss.min(), temp_loss.max(), temp_loss[-1])
+                if e % 10 == 0:
+                    format = 'Epoch %3d / %3d \n\t %s \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+                    results = (e+1, epochs[step], step, temp_loss.min(), temp_loss.max(), temp_loss[-1])
 
-                if k_fold > 1:
-                    temp_val_loss = torch.tensor(logs[step][VALIDATION_PHASE])
-                    format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-                    results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
+                    if k_fold > 1:
+                        temp_val_loss = torch.tensor(logs[step][VALIDATION_PHASE])
+                        format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
+                        results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
                 #print(format % results)
 
@@ -255,7 +256,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
     mins = []
     values = []
 
-    '''
+
     print("PRETRAINING OPTIMIZATION STARTED")
     min_ = float('inf')
     value = 0.
@@ -303,8 +304,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         torch.save(model.state_dict(), filename)
 
         print('\nPRETRAINED MODEL SUCCESSFULLY REGISTERED\n')
-    '''
-    try :
+
         print('\nTRAINING OPTIMIZATION STARTED\n')
         min_ = float('inf')
         value = 0.

@@ -53,12 +53,12 @@ def main(args):
         tr_target = io_num_process.one_hot_encoding(train_target)
     m_model = model_tuple[1]()
 
-    lrt_array = [1e-3]#torch.logspace(-5, -1, steps = 10)
-    wdt_array = [0]#torch.cat((torch.logspace(-7,-1, steps = 9),torch.Tensor([0])))
+    lrt_array = torch.logspace(-5, -1, steps = 10)
+    wdt_array = torch.cat((torch.logspace(-7,-1, steps = 9),torch.Tensor([0])))
     num_epoch_pretrain = 50
-    lrp_array = [1e-3]#lrt_array.clone()
-    wdp_array = [0]#wdt_array.clone()
-    wal_array = [1.]#torch.cat((torch.linspace(0.2,0.99, steps = 9), torch.Tensor([1.])))
+    lrp_array = lrt_array.clone()
+    wdp_array = wdt_array.clone()
+    wal_array = torch.cat((torch.linspace(0.2,0.99, steps = 9), torch.Tensor([1.])))
 
     print("---------- START GRID SEARCH ---------------")
     try :
@@ -67,9 +67,9 @@ def main(args):
         print(train_results)
         print(pretrain_results)
         print(independant_bests)
-        t = tuple(hyperparameters)
-        with open('hyperparameters.txt', 'w+') as f:
-            f.write('\nlearning rate training : %5f \nweight decay training : %5f \nepochs pretraining : %5f \nlearning rate pretraining : %5f \nweight decay pretraining : %5f \n weight auxiliary loss : %5f' % t)
+        with open('hyperparameters_'+args.model.lower()+'.txt', 'w+') as f:
+            f.write(args.model.lower() + '\n')
+            f.write('\n%f\n%f\n%f\n%f\n%f\n' % tuple(hyperparameters))
     except KeyboardInterrupt:
         del(m_model)
         return
