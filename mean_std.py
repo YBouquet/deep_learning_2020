@@ -1,108 +1,76 @@
 import torch
 import time
-import math
+import numpy as np
 
 import dlc_practical_prologue as prologue
-
-
-from bin_models import get_2nets, get_2nets_ws
-
-from train import train_model
 import io_bin_process
 import io_num_process
+import train
+import run
 
-from saver import save_csv
+CRITERION_TYPES = ['CE']
+#CRITERION_TYPES = ['MSE']
+AUX_CRITERION_TYPES = ['MSE', 'CE']
+#AUX_CRITERION_TYPES = ['MSE']
+MODEL = '2nets_ws'
+model_tuple = run.GETTERS_DICT[MODEL]
+BATCH_SIZE = 5
+LR_PRETRAIN = 0.001668
+WD_PRETRAIN = 0.000001
+LR = 5e-3
+WAL = 1.
+WD_TRAIN = 1e-5
+NB_EPOCHS = 100
+NB_SIMULATIONS = 10
 
-GETTERS_DICT =  {
-                    '2nets': ('Binary', get_2nets, (2,14,14)),
-                    '2nets_ws': ('Binary', get_2nets_ws, (2,14,14)),
-                }
-
-PAIRS_NB = 1000
-AUGMENTATION_FOLDS = 0
-DATA_DOUBLING = False
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
-def main(args):
-    if args.seed >= 0:
-        torch.manual_seed(args.seed)
-    try:
-        model_tuple = GETTERS_DICT[args.model.lower()]
-    except KeyError:
-        print('ERROR : model unknown')
-        return
+def main():
+    train_accuracies = []
+    test_accuracies = []
+    for nb_simulation in range(NB_SIMULATIONS):
+        torch.manual_seed(nb_simulation**4)
+        m_model = model_tuple[1]()
 
-    if model_tuple[0] == 'Binary':
-        tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
-        tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
-        if DATA_DOUBLING:
-            tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
-        #tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
-    else:
-        (tr_input, train_target,
-        test_set_figures, test_target_figures,
-        test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(PAIRS_NB)
-        tr_target = io_num_process.one_hot_encoding(train_target)
+        tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(run.PAIRS_NB)
+        if model_tuple[0] == 'Binary':
+            tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, run.PAIRS_NB, run.AUGMENTATION_FOLDS)
+            if run.DATA_DOUBLING:
+                tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
+            '''
+            if CRITERION_TYPE == 'BCE':
+                tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
 
-    m_model = model_tuple[1]()
-    print("---------- START TRAINING ---------------")
-    try :
-            #pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1.)
-            results = train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.n_iter, lr_train = args.lr, num_epoch_pretrain = 0, lr_pretrain = 1e-4, weight_auxiliary_loss = 1.)
-    except KeyboardInterrupt:
+            tic = time.perf_counter()
+            temp = train.pretrain_train_model(model, train_input, train_target, train_figures_target, 1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = NB_EPOCHS, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
+            toc = time.perf_counter()
+            '''
+
+        elif model_tuple[0] == 'Number':
+            (tr_input, tr_figure_target, test_set_figures, test_target_figures, test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(run.PAIRS_NB)
+            tr_target = io_num_process.one_hot_encoding(tr_figure_target)
+
+        tic = time.perf_counter()
+        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, 1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
+        toc = time.perf_counter()
+
+
+        if model_tuple[0] == 'Binary':
+            nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, BATCH_SIZE)
+            nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, BATCH_SIZE)
+        elif model_tuple[0] == 'Number':
+            nb_errors_train = io_num_process.compute_nb_recognition_errors(m_model, tr_input, tr_figure_target, BATCH_SIZE) # for recognition!
+            nb_errors_test = io_num_process.compute_nb_comparison_errors(m_model, test_set_first_figures, test_set_second_figures, test_target_comparison, BATCH_SIZE)
+
+        print(f"{nb_simulation+1}-th simulation, train accuracy = {100 * (1 - nb_errors_train / tr_input.size(0)):0.2f}%, test accuracy = {100 * (1 - nb_errors_test / te_input.size(0)):0.2f}%")
+        train_accuracies.append(100 * (1 - nb_errors_train / tr_input.size(0)))
+        test_accuracies.append(100 * (1 - nb_errors_test / te_input.size(0)))
+
         del(m_model)
-        return
-    print("----------- END TRAINING ----------------")
 
-    if model_tuple[0] == 'Binary':
-
-            nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, args.batch_size)
-            print_error(args.model, 'train', nb_errors_train, tr_input.size(0))
-            nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, args.batch_size)
-            accuracy = print_error(args.model, 'test', nb_errors_test, te_input.size(0))
-    else:
-        nb_train_recognition_errors = io_num_process.compute_nb_recognition_errors(m_model, tr_input, train_target, args.batch_size)
-        print_error(args.model, 'train recognition', nb_train_recognition_errors, tr_input.size(0))
-        nb_test_recognition_errors = io_num_process.compute_nb_recognition_errors(m_model, test_set_figures, test_target_figures, args.batch_size)
-        print_error(args.model, 'test recognition', nb_test_recognition_errors, test_set_figures.size(0))
-        nb_test_comparison_errors = io_num_process.compute_nb_comparison_errors(m_model, test_set_first_figures, test_set_second_figures, test_target_comparison, args.batch_size)
-        accuracy = print_error(args.model, 'test comparison', nb_test_comparison_errors, test_target_comparison.size(0))
-    del(m_model)
-
-    if args.save and have_sum :
-        dummy = model_tuple[1]()
-        stdout = sys.stdout
-        s = StringIO()
-        sys.stdout = s
-        if torch.cuda.is_available():
-            dummy.cuda()
-            summary(dummy, model_tuple[2])
-        else:
-            print("no summary")
-        sys.stdout = stdout
-        s.seek(0)
-        del(dummy)
-        infos = {}
-        infos['target'] = model_tuple[0]
-        infos['model'] =  args.model
-        infos['summary'] = base64.b64encode(s.read().encode('utf-8',errors = 'strict'))
-        infos['optimizer'] = 'SGD'
-        infos['learning_rate'] = args.lr
-        infos['epochs'] = args.n_iter
-        infos['minibatch_size'] = args.batch_size
-        infos['accuracy'] = accuracy
-        infos['f1_score'] = math.nan
-        infos['roc'] = math.nan
-        if len(args.comments) == 0:
-            print("Don't put an empty string as a comment!")
-        else :
-            infos['b64_comments'] = base64.b64encode(args.comments.encode('utf-8',errors = 'strict'))
-        save_csv('test_report.csv', infos)
+        #print(f"{nb_simulation+1}-th simulation trained in {toc - tic:0.2f} seconds.")
+    print('\t', f"Mean train accuracy = {np.mean(train_accuracies):0.2f}, Std train accuracy = {np.std(train_accuracies):0.2f}", "\n\t", f"Mean test accuracy = {np.mean(test_accuracies):0.2f}, Std test accuracy = {np.std(test_accuracies):0.2f}", '\n')
 
 if __name__ == '__main__':
-    # miscelaneous parameters
-    #parser.add_argument('--seed', type=int, default=1, help = 'Random seed (default 1, < 0 is no seeding)')
-    #parser.add_argument('--make_gif', type=bool, default=True)
-    #parser.add_argument('--device', type=str, default='cpu')
-    main(prologue.get_args())
+    main()
