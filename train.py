@@ -36,9 +36,21 @@ def build_kfold(train_input, k_fold):
     return torch.stack(result)
 
 
-def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch, auxiliary_loss=True, decrease_lr = False):
-    criterion =nn.CrossEntropyLoss()
-    auxiliary_criterion = nn.CrossEntropyLoss()
+def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch, auxiliary_loss=True, decrease_lr = False, criterion_type = 'BCE', aux_criterion_type = 'CE'):
+    ohe_train_figures_target = one_hot_encoding(train_figures_target)
+    
+    if criterion_type ==  'CE':
+        criterion = nn.CrossEntropyLoss()
+    elif criterion_type == 'BCE':
+        criterion = nn.BCEWithLogitsLoss()
+    elif criterion_type == 'MSE': # Number recognition.
+        criterion = nn.MSELoss()
+    
+    if aux_criterion_type == 'CE':
+        auxiliary_criterion = nn.CrossEntropyLoss()
+    elif aux_criterion_type == 'MSE':
+        auxiliary_criterion = nn.MSELoss()
+    
     optimizer = optim.SGD(model.parameters(), lr=lr)
 
     logs = {'loss': [], 'val_loss': []}
@@ -60,8 +72,8 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
         if k_fold == 1:
             va_indices, tr_indices = tr_indices, va_indices
 
-        train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices])
-        validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_target[va_indices])
+        train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices], ohe_train_figures_target[tr_indices])
+        validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_target[va_indices], ohe_train_figures_target[va_indices])
 
         dataloaders = {
             TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
@@ -84,16 +96,27 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
                 running_loss = []
 
-                for inputs, targets, figures in dataloaders[phase]:
+                for inputs, targets, figures, ohe_figures in dataloaders[phase]:
                     outputs = model(inputs)
                     if not(isinstance(outputs, tuple)):
-                        loss = criterion(outputs, targets.type(torch.LongTensor))
+                        if criterion_type != 'MSE':
+                            loss = criterion(outputs, targets.type(torch.LongTensor))
+                        else:
+                            loss = criterion(outputs, ohe_figures)
                     else:
                         tuples = outputs
-                        loss = criterion(tuples[-1], targets.type(torch.LongTensor))
+                        if criterion_type == 'CE':
+                            loss = criterion(tuples[-1], targets.type_as(torch.LongTensor()))
+                        elif criterion_type == 'BCE':
+                            loss = criterion(tuples[-1], targets.type_as(torch.FloatTensor()))
+                        elif criterion_type == 'MSE':
+                            loss = criterion(tuples[-1], figures.type_as(torch.FloatTensor()))
                         if auxiliary_loss:
-                            for i in range(len(tuples) - 1):
-                                loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
+                            if aux_criterion_type == 'CE':
+                                for i in range(len(tuples) - 1):
+                                    loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
+                            elif aux_criterion_type == 'MSE':
+                                    loss += auxiliary_criterion(tuples[0], ohe_figures)
                     if phase == TRAINING_PHASE:
                         optimizer.zero_grad()
                         loss.backward()
@@ -117,7 +140,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                 format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                 results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-            print(format % results)
+            #print(format % results)
 
         global_train_loss.append(temp_loss[-1])
         global_valid_loss.append(temp_val_loss[-1])
@@ -128,7 +151,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
     if k_fold > 1 :
         format += '\t Validation :\t %8.5f\n'
         results.append(torch.tensor(global_valid_loss).mean())
-    print(format % tuple(results))
+    #print(format % tuple(results))
     model.eval()
 
 
@@ -220,7 +243,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                     format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                     results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-                print(format % results)
+                #print(format % results)
 
             global_train_loss.append(temp_loss[-1])
             global_valid_loss.append(temp_val_loss[-1])

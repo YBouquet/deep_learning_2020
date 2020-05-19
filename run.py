@@ -71,7 +71,8 @@ def main(args):
         tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
         if DATA_DOUBLING:
             tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
-        #tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
+        #if CRITERION_TYPE == 'BCE':
+        tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
     else:
         (tr_input, train_target,
         test_set_figures, test_target_figures,
@@ -80,18 +81,17 @@ def main(args):
     m_model = model_tuple[1]()
     print("---------- START TRAINING ---------------")
     try :
-            train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.lr, args.n_iter)
+        train_model(m_model, tr_input, tr_target, tr_figure_target, max(1,args.k_fold),  args.batch_size, args.lr, args.n_iter)
     except KeyboardInterrupt:
         del(m_model)
         return
     print("----------- END TRAINING ----------------")
 
     if model_tuple[0] == 'Binary':
-
-            nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, args.batch_size)
-            print_error(args.model, 'train', nb_errors_train, tr_input.size(0))
-            nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, args.batch_size)
-            accuracy = print_error(args.model, 'test', nb_errors_test, te_input.size(0))
+        nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, args.batch_size)
+        print_error(args.model, 'train', nb_errors_train, tr_input.size(0))
+        nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, args.batch_size)
+        accuracy = print_error(args.model, 'test', nb_errors_test, te_input.size(0))
     else:
         nb_train_recognition_errors = io_num_process.compute_nb_recognition_errors(m_model, tr_input, train_target, args.batch_size)
         print_error(args.model, 'train recognition', nb_train_recognition_errors, tr_input.size(0))

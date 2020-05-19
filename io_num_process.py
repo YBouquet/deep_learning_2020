@@ -40,6 +40,7 @@ def formatting_input(pairs_nb):
            test_set_figures, test_target_figures,
            test_set_first_figures, test_set_second_figures, test_target_comparison)
 
+
 def compute_nb_recognition_errors(model, input, target, mini_batch_size):
     nb_errors = 0
 

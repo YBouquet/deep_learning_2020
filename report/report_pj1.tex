@@ -1,0 +1,184 @@
+\documentclass[10pt,conference,compsocconf]{IEEEtran}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{bookmark}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage{pifont}
+\newcommand{\xmark}{\ding{55}}
+% Spellcheck
+
+
+\begin{document}
+\title{Project 1 of Deep Learning:\\ Classification, weight sharing, auxiliary losses}
+
+\author{Yann Bouquet, 273827, \texttt{yann.bouquet@epfl.ch}, Master in Data Science, \\
+  Thomas Fry, 280922, \texttt{thomas.fry@epfl.ch}, Master in Computational Science and Engineering, \\
+  EPFL
+  \date{\today}}
+\maketitle
+
+
+\begin{abstract}
+This project in Deep Learning is about comparing two digits visible in a two-channel image from the MNIST database and formatted with the prologue code from the class. 
+In this report are described the building of different learning architectures and their numerous enhancements to reach a better prediction. Amongst them were implemented weight sharing, auxiliary losses, data augmentation and hyperparameters optimization. % Anything else?
+Finally an accuracy of 0.9.. was reached. %
+\end{abstract}
+
+
+\section{Introduction}
+A figure is, by definition \ref{Cambridge dictionnary}, the symbol of a number. Symbol implies language, reading and thus recognition. By the time of five years old, children can recognize digits and letters, small and large, handwritten and machine printed... Humans take this ability for granted, but the learning process of recognition is questioned when they ask the machine to carry out the task for them. Despite a few decades of research, humans remain the best readers of pattern recognizers, and still we are far from describing the successful phenomena behind recognition. Figure recognition made a leap in the 90's with the LeNet architecture, a straightforward neural network for handwritten character recognition.
+
+\section{Exploratory data analysis}
+The MNIST database has handwritten digits images, with a total training set of 60,000 examples and a test set of 10,000 examples. The digits have been size-normalized and centered in a fixed-size image.
+Those images have been formatted with an average pooling and then gathered into pairs, with the prologue code. Thus each image is a 14 $\times$ 14 pixels tensor. %right?
+
+\section{State of the art}
+The LeNet5 from Yann LeCun is a neural network with two sets of convolutional and average pooling layers, followed by a flattening convolutional layer, then two fully-connected layers and finally a softmax classifier, with the mean squared error (MSE) as criterion. % image + ref Yann LeCun
+All experiments and performances described in this paper are estimated on a test set of 1000 pairs of image, for architecture trained on also 1000 image pairs, with stochastic gradient descent as optimizer, through ten simulations where both data and weight initialization are randomized.
+LeNet5 was built for 28 $\times$ 28 images, so it was modified. The adaptated architecture includes two sets of convolution layers, one max pooling layer, one flattening layer and four fully-connected layers, with the cross entropy (CE) as criterion.
+Also, because LeNet5 takes one image at a time, the 1000 pairs of image were split and merge into one set of 2000 images.
+LeNet5 implemented in the previous format reached an accuracy of 97.27$\%$ with a standard deviation of $\sigma = 0.36$. 
+This result stands as the benchmark for future comparisons with the following architectures.
+Except for the optimization of the final architecture, all performances described in this paper are estimated with the parameters in \ref{tab:param}.
+% Tableau récapitulatif
+% Number of parameters with torch summary for all
+
+\begin{table}[H]
+\begin{tabular}{|c|c|c|}
+  \hline
+  Parameter & Symbol & Selected value \\
+  \hline
+  Number of epochs & $n_{epochs}$ & 100 \\
+  Batch size & $|B|$ & 5 \\
+  Learning rate & $\gamma$ & $5.0 \times 10^{-3}$ \\
+  \hline
+\end{tabular}
+\caption{Fixed values of the parameters used for all performances.}
+\label{tab:param}
+\end{table}
+
+
+\section{Selection and enhancement of the architecture}
+% 2nets
+% optimizer, weight decay/regularization parameter, weight auxiliary loss, dropout
+\subsection{Weight sharing}
+\subsection{Auxiliary loss}
+\subsection{Pretraining}
+\subsection{Data augmentation}
+\subsection{Dropout}
+
+
+\section{Optimization of the parameters}
+
+
+%\begin{figure}[H]
+%\centering
+%\includegraphics[width=0.85\columnwidth]{}
+%\caption{}
+%\vspace{-3mm}
+%\label{fig:}
+%\end{figure}
+%
+%\begin{figure}[H]
+%\centering
+%\includegraphics[width=0.85\columnwidth]{}
+%\caption{}
+%\vspace{-3mm}
+%\label{fig:}
+%\end{figure}
+
+\section{Results: estimation of the performance}
+
+Finally an accuracy of 0.9.. was reached with the ... architecture. %a decreasing learning rate ..., 
+Below are the tuned values of the hyperparameters that were used, and the fixed values of the other parameters.
+
+\begin{table}[H]
+\begin{tabular}{|c|c|c|}
+  \hline
+  Parameter & Symbol & Selected value \\
+  \hline
+  Number of epochs & $n_{epochs}$ & ... \\
+  Batch size & $|B|$ & ...  \\
+  Data addition & $D$ & ... \\
+  \hline
+\end{tabular}
+\caption{Fixed values of the parameters used for the final architecture.}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|c|c|c|}
+  \hline
+  Hyperparameter 			& Symbol 				& Tuned value \\
+  \hline
+  Learning rates 			& $\gamma_{pretraining}$ 	& $1.668 \times 10^{-3}$ \\
+						& $\gamma_{training}$		& $0.77 \times 10^{-5}$ \\
+  Regularization parameter 	& $\lambda_{pretraining}$ 	& $1.0 \times 10^{-6}$  \\
+						& $\lambda_{training}$		& $1.0 \times 10^{-1}$  \\
+  Auxiliary loss weight 		& $w_{aux}$ 				& $2.0 \times 10^{-1}$ \\
+  \hline
+\end{tabular}
+\caption{Tuned values of the hyperparameters used in the final architecture.}
+\end{table}
+
+
+%\bibliographystyle{IEEEtran}
+%\bibliography{litterature}
+
+\section{Appendix}
+
+\begin{table}[H]
+\begin{tabular}{|c 	|c		|c  			|c 					|c 				|c  				|c 				|c 			|c				|c 			|c|}
+  \hline
+	Architectures 	& Type	& Criterion 	& Auxiliary 			& Weight			& Decreasing 		& Regularization 	& Dropout 	& Image			& Accuracy 	& Standard \\
+				&		&			& criterion			& sharing			& learning rate	& parameter		&			& switching		&			& deviation \\
+  \hline
+	net	 		& FR		& MSE 		& none 				& none 			& \checkmark	 	& \xmark 		& \xmark		& \checkmark		& 75.81 		& 21.85 \\ % from class, cf praticals
+	2channels	& BC 	& CE 		& none 				& none			& \xmark			& \xmark			& \xmark		& \xmark			& 80.16		& 1.17 \\
+	2onechannel	& BC	& CE 		& none 				& \checkmark		& \xmark			& \xmark			& \xmark		& \xmark			& 83.26		& 1.37 \\
+	oneimage	& BC	& CE 		& none 				& none			& \xmark			& \xmark			& \xmark		& \xmark			& 83.67		& 1.14 \\
+	2lenet5		& BC	& CE 		& none 				& \xmark			& \xmark			& \xmark			& \xmark		& \xmark			& 83.77		& 0.78 \\
+	2lenet5		& BC	& CE 		& none 				& \xmark			& \xmark			& \xmark			& \checkmark	& \xmark			& 84.85		& 0.72 \\
+	2onechannel	& BC	& CE 		& none 				& \checkmark		& \xmark			& \xmark			& \checkmark	& \xmark			& 85.25		& 1.05 \\
+	2onechannel	& BC	& CE 		& none 				& \checkmark		& \xmark			& \xmark			& \checkmark	& \checkmark		& 85.75		& 1.26 \\
+	2lenet5		& BC	& CE 		& none 				& \xmark			& \xmark			& \xmark			& \checkmark	& \checkmark		& 86.86		& 0.75 \\
+	oneimage	& BC	& CE 		& none 				& none			& \xmark			& \xmark			& \checkmark	& \xmark			& 87.50		& 0.69 \\
+	oneimage	& BC	& CE 		& none 				& none			& \xmark			& \xmark			& \checkmark	& \checkmark		& 87.80		& 0.64 \\
+	2nets 		& BC 	& BCE 		& CE 				& \xmark 		& \xmark 		& \xmark 		& \xmark 	& \xmark			& 89.49 		& 7.80 \\
+	2nets 		& BC 	& CE 		& CE 				& \xmark 		& \xmark 		& \xmark 		& \xmark 	& \xmark			& 90.47 		& 4.16 \\
+	2nets\_ws	& BC 	& BCE 		& CE 				& \checkmark		& \xmark			& \xmark 		& \xmark		& \xmark			& 94.26		& 3.69 \\
+	2nets\_ws	& BC 	& CE 		& CE 				& \checkmark		& \xmark			& \xmark 		& \xmark		& \xmark			& 95.25		& 1.69 \\
+	net2			& FR 	& MSE 		& none 				& none 			& \xmark			& \xmark 		& \xmark		& \checkmark		& 96.99		& 0.28 \\ 
+	LeNet5 		& FR 	& MSE 		& none 				& none 			& $\checkmark$ 	& \xmark 		& \xmark		& \checkmark		& 97.08 		& 0.51 \\
+	LeNet5 		& FR 	& MSE 		& none 				& none 			& \xmark 		& \xmark 		& \xmark 	& \checkmark		& 97.14 		& 0.47 \\
+	LeNet5 		& FR 	& CE 		& none 				& none 			& \xmark 		& \xmark 		& \xmark 	& \checkmark		& 97.27 		& 0.36 \\ %CE and converging.
+	LeNet5 		& FR 	& CE 		& none 				& none 			& $\checkmark$ 	& \xmark 		& \xmark		& \checkmark		& 97.29 		& 0.52 \\ 
+  \hline
+\end{tabular}
+\caption{Summary of the accuracies in increasing order}
+\label{tab:summary}
+\end{table}
+
+\begin{table}[H]
+\begin{tabular}{|c 	|c		|c  					|c 				|c|}
+  \hline
+	Architectures 	& Type	& Number of			& Best accuracy 	& Standard \\
+				&		& parameters			& (w/o DA)		& deviation \\
+  \hline
+	net	 		& FR		& $2.18 \times 10^{5}$ 	& 75.81 			& 21.85 \\
+	2channels	& BC 	& $1.25 \times 10^{5}$ 	& 80.16			& 1.17 \\
+	2onechannel	& BC	& $3.61 \times 10^{5}$  & 85.75			& 1.26 \\ % wrong result from torch summary, compute by hand
+	2lenet5		& BC	& $7.47 \times 10^{5}$  & 86.86			& 0.75 \\
+	oneimage	& BC	& $3.39 \times 10^{5}$  & 87.80			& 0.64 \\
+	2nets 		& BC 	& $1.35 \times 10^{5}$ 	& 90.47 			& 4.16 \\
+	2nets\_ws	& BC 	& $1.35 \times 10^{5}$	& 95.25			& 1.69 \\ % wrong result from torch summary, compute by hand
+	net2			& FR 	& $3.86 \times 10^{5}$ 	& 96.99			& 0.28 \\ 
+	LeNet5 		& FR 	& $3.51 \times 10^{5}$ 	& 97.29 			& 0.52 \\ 
+  \hline
+\end{tabular}
+\caption{Number of parameters for each architecture in increasing accuracy order}
+\label{tab:summary}
+\end{table}
+
+\end{document}

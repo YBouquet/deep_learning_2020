@@ -17,7 +17,7 @@ def targets_reshape(train_targets, test_targets, one_hot_encoding = True):
     return train_targets.view(-1,1), test_targets.view(-1,1)
 
 
-def nb_classification_errors(model, test_input, target, mini_batch_size):
+def nb_classification_errors(model, test_input, target, mini_batch_size, criterion_type = 'BCE'):
     nb_errors = 0
 
     for b in range(0, test_input.size(0), mini_batch_size):
@@ -29,8 +29,12 @@ def nb_classification_errors(model, test_input, target, mini_batch_size):
                 raise Exception('ERROR', 'the output of the model isn\'t recognized')
         _, predicted_classes = output.max(1)
         for k in range(mini_batch_size):
-            if target[b + k] != predicted_classes[k]:
-                nb_errors = nb_errors + 1
+            if criterion_type == 'CE' or criterion_type == 'MSE':
+                if target[b + k] != predicted_classes[k]:
+                    nb_errors = nb_errors + 1
+            elif criterion_type == 'BCE':
+                if target[[b + k],predicted_classes[k]] <= 0:
+                    nb_errors = nb_errors + 1
 
     return nb_errors
 
