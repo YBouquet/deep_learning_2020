@@ -39,7 +39,7 @@ def build_kfold(train_input, k_fold):
 def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch, auxiliary_loss=True, decrease_lr = False):
     criterion =nn.CrossEntropyLoss()
     auxiliary_criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=lr)
+    optimizer = optim.ADAM(model.parameters(), lr=lr)
 
     logs = {'loss': [], 'val_loss': []}
 
@@ -170,7 +170,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
         decays = {PRETRAINING: weight_decay_pretrain, TRAINING : weight_decay_train}
 
         for step in [PRETRAINING, TRAINING]:
-            optimizer = optim.SGD(model.parameters(), lr=lrs[step], weight_decay = decays[step])
+            optimizer = optim.Adam(model.parameters(), betas = (0.8, 0.999), lr=lrs[step], weight_decay = decays[step])
             for e in range(epochs[step]):
                 avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 
@@ -216,7 +216,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                         format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                         results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-                #print(format % results)
+                    print(format % results)
 
 
     for k,v in logs.items():
