@@ -117,7 +117,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
                 format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                 results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-            print(format % results)
+            #print(format % results)
 
         global_train_loss.append(temp_loss[-1])
         global_valid_loss.append(temp_val_loss[-1])
@@ -128,7 +128,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
     if k_fold > 1 :
         format += '\t Validation :\t %8.5f\n'
         results.append(torch.tensor(global_valid_loss).mean())
-    print(format % tuple(results))
+    #print(format % tuple(results))
     model.eval()
 
 
@@ -216,7 +216,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                         format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                         results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-                    print(format % results)
+                    #print(format % results)
 
 
     for k,v in logs.items():
