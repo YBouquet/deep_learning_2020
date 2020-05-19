@@ -8,10 +8,7 @@ import io_num_process
 import train
 import run
 
-CRITERION_TYPES = ['CE']
-#CRITERION_TYPES = ['MSE']
-AUX_CRITERION_TYPES = ['MSE', 'CE']
-#AUX_CRITERION_TYPES = ['MSE']
+
 MODEL = '2nets_ws'
 model_tuple = run.GETTERS_DICT[MODEL]
 BATCH_SIZE = 5
@@ -19,8 +16,8 @@ LR_PRETRAIN = 0.001668
 WD_PRETRAIN = 0.000001
 LR = 5e-3
 WAL = 1.
-WD_TRAIN = 1e-5
-NB_EPOCHS = 100
+WD_TRAIN = 0.
+NB_EPOCHS = 50
 NB_SIMULATIONS = 10
 
 
@@ -30,7 +27,7 @@ def main():
     train_accuracies = []
     test_accuracies = []
     for nb_simulation in range(NB_SIMULATIONS):
-        torch.manual_seed(nb_simulation**4)
+        torch.manual_seed(4)
         m_model = model_tuple[1]()
 
         tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(run.PAIRS_NB)
@@ -38,14 +35,6 @@ def main():
             tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, run.PAIRS_NB, run.AUGMENTATION_FOLDS)
             if run.DATA_DOUBLING:
                 tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
-            '''
-            if CRITERION_TYPE == 'BCE':
-                tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
-
-            tic = time.perf_counter()
-            temp = train.pretrain_train_model(model, train_input, train_target, train_figures_target, 1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = NB_EPOCHS, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
-            toc = time.perf_counter()
-            '''
 
         elif model_tuple[0] == 'Number':
             (tr_input, tr_figure_target, test_set_figures, test_target_figures, test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(run.PAIRS_NB)
