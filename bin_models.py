@@ -342,6 +342,9 @@ class Two_nets_ws_bn(nn.Module):
         return num_1, num_2, comp
 
 def get_2nets_ws():
+    return Two_nets_ws(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
+    
+def get_2nets_ws_do():
     return Two_nets_ws_do(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
 
 class Two_Channels(nn.Module):

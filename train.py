@@ -133,7 +133,7 @@ def train_model(model, train_input, train_target, train_figures_target, k_fold, 
 
 
 
-def pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1.):
+def pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1.):
     criterion =nn.CrossEntropyLoss()
     auxiliary_criterion = nn.CrossEntropyLoss()
 
@@ -170,7 +170,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
         decays = {PRETRAINING: weight_decay_pretrain, TRAINING : weight_decay_train}
 
         for step in [PRETRAINING, TRAINING]:
-            optimizer = optim.Adam(model.parameters(), betas = (0.6, 0.999), lr=lrs[step], weight_decay = decays[step]) #optim.SGD(model.parameters(), lr = lrs[step], weight_decay = decays[step])
+            optimizer = optim.Adam(model.parameters(), betas = (beta, 0.999), lr=lrs[step], weight_decay = decays[step]) #optim.SGD(model.parameters(), lr = lrs[step], weight_decay = decays[step])
             for e in range(epochs[step]):
                 avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 
