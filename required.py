@@ -8,6 +8,7 @@ NUM_EPOCHS = '25'
 SEED = '0'
 WAL = '0.'
 OPTIMIZER = "adam"
+
 if __name__ == '__main__':
     os.system('python main.py --model ' + MODEL + \
         ' --optimizer ' + OPTIMIZER + \

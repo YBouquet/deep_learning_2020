@@ -392,6 +392,7 @@ class Two_nets_ws_bn(nn.Module):
                                                 fn_comp_parameters['hd_features'],
                                                 fn_comp_parameters['out_features']
                                             )
+                                            
     def forward(self, x):
         unshared_1 = self.shared_conv_1(x[:,0].view(-1,1,14,14))
         unshared_2 = self.shared_conv_1(x[:,1].view(-1,1,14,14))
@@ -413,59 +414,3 @@ def get_2nets_ws_do():
 
 def get_2nets_ws_bn():
     return Two_nets_ws_bn(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
-
-class Two_Channels(nn.Module):
-
-    @staticmethod
-    def convolution_block(in_channels,mid_channels, out_channels, vector_size, kernel_size=CONV_KERNEL):
-        block = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=mid_channels, kernel_size = kernel_size,
-                        padding = 2, padding_mode = 'zeros'),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=mid_channels, out_channels=out_channels, kernel_size = kernel_size),
-            nn.MaxPool2d(kernel_size=POOLING_KERNEL),
-            nn.ReLU(),
-            nn.Conv2d(in_channels = out_channels, out_channels = vector_size, kernel_size = kernel_size),
-            nn.ReLU()
-        )
-        return block
-
-    @staticmethod
-    def fully_connected_network(in_features, hd_features, out_features):
-        block = nn.Sequential(
-            nn.Linear(in_features, hd_features),
-            nn.ReLU(),
-            nn.Linear(hd_features, out_features)
-        )
-        return block
-
-    '''
-    def get_hyperparameters():
-        return self.hyper_params
-    '''
-    def __init__(self, cn_parameters, vector_size, fn_parameters):
-        super(Two_Channels, self).__init__()
-        #self.hyper_params = (CN_PARAMETERS_2C, VECTOR_SIZE, FN_PARAMETERS_2C)
-        self.conv_ = self.convolution_block(cn_parameters['in_channels'], cn_parameters['mid_channels'], cn_parameters['out_channels'], vector_size)
-        self.fcn_ = self.fully_connected_network(vector_size, fn_parameters['hd_features'], fn_parameters['out_features'])
-
-
-    def forward(self, x):
-        m_vector = self.conv_(x)
-        return self.fcn_(m_vector.view(-1,  VECTOR_SIZE))
-
-VECTOR_SIZE = 120
-
-CN_PARAMETERS_2C = {
-    'in_channels' : 2,
-    'mid_channels' : 12,
-    'out_channels' : 32
-}
-
-FN_PARAMETERS_2C = {
-    'hd_features' : 150,
-    'out_features' : 2
-}
-
-def get_2channels():
-    return Two_Channels(CN_PARAMETERS_2C, VECTOR_SIZE, FN_PARAMETERS_2C)
