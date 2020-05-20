@@ -9,12 +9,13 @@ import train
 import run
 
 
-MODEL = '2nets_ws'
+MODEL = '2nets_ws_bn'
 model_tuple = run.GETTERS_DICT[MODEL]
 BATCH_SIZE = 5
 LR_PRETRAIN = 0.001668
 WD_PRETRAIN = 0.000001
 LR = 6e-4
+BETA = 0.6
 WAL = 1.
 WD_TRAIN = 0.
 NB_EPOCHS = 100
@@ -41,7 +42,7 @@ def main():
             tr_target = io_num_process.one_hot_encoding(tr_figure_target)
 
         tic = time.perf_counter()
-        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, 1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
+        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, 1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, beta = BETA, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
         toc = time.perf_counter()
 
 

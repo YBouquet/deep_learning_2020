@@ -23,7 +23,7 @@ except ImportError:
 import dlc_practical_prologue as prologue
 
 
-from bin_models import get_2channels, get_2nets, get_2nets_ws, get_2nets_ws_do
+from bin_models import get_2channels, get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn
 from bin_v2_models import get_2_one_channel, get_one_image, get_2_LeNet5
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
@@ -38,6 +38,7 @@ GETTERS_DICT =  {
                     '2nets': ('Binary', get_2nets, (2,14,14)),
                     '2nets_ws': ('Binary', get_2nets_ws, (2,14,14)),
                     '2nets_ws_do': ('Binary', get_2nets_ws_do, (2,14,14)),
+                    '2nets_ws_bn': ('Binary', get_2nets_ws_bn, (2,14,14)),
                     '2onechannel' : ('Binary', get_2_one_channel, (2,14,14)),
                     'oneimage' : ('Binary', get_one_image, (2,14,14)),
                     '2lenet5' : ('Binary', get_2_LeNet5, (2,14,14)),
