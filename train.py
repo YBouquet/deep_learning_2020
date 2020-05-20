@@ -170,7 +170,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
         decays = {PRETRAINING: weight_decay_pretrain, TRAINING : weight_decay_train}
 
         for step in [PRETRAINING, TRAINING]:
-            optimizer = optim.Adam(model.parameters(), betas = (0.5, 0.999), lr=lrs[step], weight_decay = decays[step]) #optim.SGD(model.parameters(), lr = lrs[step], weight_decay = decays[step])
+            optimizer = optim.Adam(model.parameters(), betas = (0.6, 0.999), lr=lrs[step], weight_decay = decays[step]) #optim.SGD(model.parameters(), lr = lrs[step], weight_decay = decays[step])
             for e in range(epochs[step]):
                 avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 

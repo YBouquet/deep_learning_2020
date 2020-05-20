@@ -33,7 +33,7 @@ class m_conv_bn(nn.Module):
         super(m_conv_bn, self).__init__()
         self.conv_ = nn.Sequential(
                     nn.Conv2d(in_channels = in_channels, out_channels = out_channels, kernel_size = kernel_size,  padding = padding, padding_mode = padding_mode),
-                    nn.BatchNorm2d()
+                    nn.BatchNorm2d(out_channels)
                     )
     def forward(self, x):
         return f.relu(self.conv_(x))
@@ -215,8 +215,8 @@ class Two_nets_ws_do(nn.Module):
     def s_linear(in_features, hd_features, out_features):
         block = nn.Sequential(
             nn.Linear(in_features, hd_features),
-            nn.Dropout(),
             nn.ReLU(),
+            nn.Dropout(),
             nn.Linear(hd_features, out_features)
         )
         return block
@@ -225,11 +225,11 @@ class Two_nets_ws_do(nn.Module):
     def u_linear(in_features, hd_features_1, hd_features_2, out_features):
         block = nn.Sequential(
             nn.Linear(in_features, hd_features_1),
-            nn.Dropout(),
             nn.ReLU(),
+            nn.Dropout(),
             nn.Linear(hd_features_1, hd_features_2),
-            nn.Dropout(),
             nn.ReLU(),
+            nn.Dropout(),
             nn.Linear(hd_features_2, out_features),
         )
         return block
@@ -275,20 +275,20 @@ class Two_nets_ws_do(nn.Module):
 class Two_nets_ws_bn(nn.Module):
     @staticmethod
     def conv_unit(in_channels, out_channels, padding = 0, padding_mode = 'zeros', kernel_size = CONV_KERNEL):
-        return m_conv_do(in_channels, out_channels, kernel_size, padding = padding, padding_mode = padding_mode)
+        return m_conv_bn(in_channels, out_channels, kernel_size, padding = padding, padding_mode = padding_mode)
 
 
     @staticmethod
     def u_linear(in_features, hd_features_1, hd_features_2, out_features):
         block = nn.Sequential(
             nn.Linear(in_features, hd_features_1),
-            nn.BatchNorm(),
+            nn.BatchNorm1d(hd_features_1),
             nn.ReLU(),
             nn.Linear(hd_features_1, hd_features_2),
-            nn.BatchNorm(),
+            nn.BatchNorm1d(hd_features_2),
             nn.ReLU(),
             nn.Linear(hd_features_2, out_features),
-            nn.BatchNorm()
+            nn.BatchNorm1d(out_features)
         )
         return block
 
@@ -296,7 +296,7 @@ class Two_nets_ws_bn(nn.Module):
     def s_linear(in_features, hd_features, out_features):
         block = nn.Sequential(
             nn.Linear(in_features, hd_features),
-            nn.BatchNorm(),
+            nn.BatchNorm1d(hd_features),
             nn.ReLU(),
             nn.Linear(hd_features, out_features)
         )
@@ -316,7 +316,7 @@ class Two_nets_ws_bn(nn.Module):
                                                             cn_s_parameters['out_channels'],
                                                             kernel_size = CONV_KERNEL,
                                                             ),
-                                                     nn.BatchNorm2d(),
+                                                     nn.BatchNorm2d(cn_s_parameters['out_channels']),
                                                      nn.MaxPool2d(kernel_size = POOLING_KERNEL),
                                                      nn.ReLU(),
                                                 )
@@ -342,7 +342,7 @@ class Two_nets_ws_bn(nn.Module):
         return num_1, num_2, comp
 
 def get_2nets_ws():
-    return Two_nets_ws(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
+    return Two_nets_ws_do(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
 
 class Two_Channels(nn.Module):
 
