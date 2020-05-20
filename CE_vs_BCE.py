@@ -15,14 +15,15 @@ import io_num_process
 import train
 import run
 
-CRITERION_TYPES = ['CE']
+CRITERION_TYPES = ['CE', 'MSE']
 #CRITERION_TYPES = ['MSE']
 AUX_CRITERION_TYPES = ['CE']
 #AUX_CRITERION_TYPES = ['MSE']
 MODELS = ['2nets', '2nets_ws']
+MODELS = ['lenet5']
 BATCH_SIZE = 5
 LR = 5e-3
-NB_EPOCHS = 100
+NB_EPOCHS = 50
 NB_SIMULATIONS = 10
 
 
