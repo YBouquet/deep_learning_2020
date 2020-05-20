@@ -305,7 +305,7 @@ class Two_nets_ws_bn(nn.Module):
 
 
     def __init__(self, cn_u_parameters, fn_u_parameters, cn_s_parameters, fn_comp_parameters):
-        super(Two_nets_ws_do, self).__init__()
+        super(Two_nets_ws_bn, self).__init__()
         self.shared_conv_1 =   self.conv_unit(
                                                 cn_u_parameters['in_channels'],
                                                 cn_u_parameters['out_channels'],
