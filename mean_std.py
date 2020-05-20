@@ -9,13 +9,13 @@ import train
 import run
 
 
-MODEL = '2nets_ws'
+MODEL = '2nets'
 model_tuple = run.GETTERS_DICT[MODEL]
 BATCH_SIZE = 5
 LR_PRETRAIN = 0.001668
 WD_PRETRAIN = 0.000001
 LR = 7e-5
-WAL = 0.
+WAL = 1.
 WD_TRAIN = 0.
 NB_EPOCHS = 50
 NB_SIMULATIONS = 10
