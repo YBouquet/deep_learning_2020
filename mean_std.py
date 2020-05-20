@@ -16,7 +16,7 @@ LR_PRETRAIN = 0.001668
 WD_PRETRAIN = 0.000001
 LR = 6e-4
 WAL = 1.
-WD_TRAIN = 0.
+WD_TRAIN = 1e-5
 NB_EPOCHS = 100
 NB_SIMULATIONS = 10
 
@@ -27,7 +27,7 @@ def main():
     train_accuracies = []
     test_accuracies = []
     for nb_simulation in range(NB_SIMULATIONS):
-        torch.manual_seed(4)
+        torch.manual_seed(nb_simulation)
         m_model = model_tuple[1]()
 
         tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(run.PAIRS_NB)
