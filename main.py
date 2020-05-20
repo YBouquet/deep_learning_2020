@@ -6,23 +6,32 @@ import dlc_practical_prologue as prologue
 import io_bin_process
 import io_num_process
 import train
-import run
+
+from bin_models import get_2channels, get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn, get_2nets_ws_required
+from number_recognition_architectures import get_net, get_net2, get_lenet5
+
 
 
 GETTERS_DICT =  {
                     'net': ('Number', get_net), #model given in the practicals
                     'net2': ('Number', get_net2), #model given in the practicals
                     'lenet5': ('Number', get_lenet5), #LeCun's model with correction due to different input format
+
+                    '2nets_ws_required' : ('Binary', get_2nets_ws_required),
+
+                    '2channels': ('Binary', get_2channels),
                     '2nets': ('Binary', get_2nets),
                     '2nets_ws': ('Binary', get_2nets_ws),
+
                     '2nets_ws_do': ('Binary', get_2nets_ws_do),
                     '2nets_ws_bn': ('Binary', get_2nets_ws_bn)
                 }
 
 PAIRS_NB = 1000
+AUGMENTATION_FOLDS = 0
 DATA_DOUBLING = False
-model_tuple = run.GETTERS_DICT[MODEL]
 
+NB_SIMULATIONS = 10
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
@@ -40,8 +49,8 @@ def main(args):
 
         tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(PAIRS_NB)
         if model_tuple[0] == 'Binary':
-            tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, run.PAIRS_NB, run.AUGMENTATION_FOLDS)
-            if run.DATA_DOUBLING:
+            tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
+            if DATA_DOUBLING:
                 tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
 
         elif model_tuple[0] == 'Number':
@@ -55,11 +64,11 @@ def main(args):
         print(f"{nb_simulation+1}-th simulation trained in {toc - tic:0.2f} seconds.")
 
         if model_tuple[0] == 'Binary':
-            nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, BATCH_SIZE)
-            nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, BATCH_SIZE)
+            nb_errors_train = io_bin_process.nb_classification_errors(m_model, tr_input, tr_target, args.batch_size)
+            nb_errors_test = io_bin_process.nb_classification_errors(m_model, te_input, te_target, args.batch_size)
         elif model_tuple[0] == 'Number':
-            nb_errors_train = io_num_process.compute_nb_recognition_errors(m_model, tr_input, tr_figure_target, BATCH_SIZE) # for recognition!
-            nb_errors_test = io_num_process.compute_nb_comparison_errors(m_model, test_set_first_figures, test_set_second_figures, test_target_comparison, BATCH_SIZE)
+            nb_errors_train = io_num_process.compute_nb_recognition_errors(m_model, tr_input, tr_figure_target, args.batch_size) # for recognition!
+            nb_errors_test = io_num_process.compute_nb_comparison_errors(m_model, test_set_first_figures, test_set_second_figures, test_target_comparison, args.batch_size)
 
         print(f"{nb_simulation+1}-th simulation, train accuracy = {100 * (1 - nb_errors_train / tr_input.size(0)):0.2f}%, test accuracy = {100 * (1 - nb_errors_test / te_input.size(0)):0.2f}%")
         train_accuracies.append(100 * (1 - nb_errors_train / tr_input.size(0)))

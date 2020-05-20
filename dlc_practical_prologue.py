@@ -38,7 +38,7 @@ parser.add_argument('-f', '--file',
 parser.add_argument('--batch_size', type=int, default=5, help = "Select the number of samples to work through before every update of the model parameters")
 parser.add_argument('--n_epochs', type=int, default=25, help = 'Number of epochs')
 parser.add_argument('--learning_rate', type = float, default = 1e-3, help = 'Learning rate for the optimizer')
-parser.add_argument('--optimizer', type = string, default = 'sgd', help = 'Optimizer for the training process')
+parser.add_argument('--optimizer', type = str, default = 'sgd', help = 'Optimizer for the training process')
 parser.add_argument('--adam_beta1', type = float, default = 0.9, help = 'first order decaying paramerter for Adam algorithm')
 parser.add_argument('--weight_decay', type = float, default = 0., help = 'l2 regularization parameter')
 parser.add_argument('--weight_auxiliary_loss', type = float, default = 0.)
