@@ -216,7 +216,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                         format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                         results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
 
-                    print(format % results)
+                    #print(format % results)
 
 
     for k,v in logs.items():
