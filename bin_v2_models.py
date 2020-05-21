@@ -61,7 +61,7 @@ FCN_PARAMETERS = {
 class Two_Channels(nn.Module):
 
     @staticmethod
-    def convolution_block(in_channels,mid_channels, out_channels, vector_size, kernel_size=CONV_KERNEL):
+    def convolution_block(in_channels,mid_channels, out_channels, vector_size, kernel_size=KERNEL_SIZE):
         block = nn.Sequential(
             nn.Conv2d(in_channels=in_channels, out_channels=mid_channels, kernel_size = kernel_size,
                         padding = 2, padding_mode = 'zeros'),

@@ -249,7 +249,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
     return logs
 
 
-def grid_search(model, filename, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lrt_array = [], wdt_array = [], num_epoch_pretrain = 50, lrp_array = [], wdp_array = [], wal_array = [], seed = 0):
+def grid_search(model, filename, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lrt_array = [], beta_array = [],  wdt_array = [], num_epoch_pretrain = 50, lrp_array = [], wdp_array = [], wal_array = [], seed = 0):
     torch.save(model.state_dict(), filename)
     '''
     size = [len(lrt_array),len(wdt_array),len(nep_array),len(lrp_array),len(wdp_array),len(wal_array),2]
@@ -261,7 +261,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
     mins = []
     values = []
 
-
+    '''
     print("PRETRAINING OPTIMIZATION STARTED")
     min_ = float('inf')
     value = 0.
@@ -309,14 +309,15 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         torch.save(model.state_dict(), filename)
 
         print('\nPRETRAINED MODEL SUCCESSFULLY REGISTERED\n')
-
+        '''
+    try:
         print('\nTRAINING OPTIMIZATION STARTED\n')
         min_ = float('inf')
         value = 0.
         for learning_rate_train in lrt_array:
             model.load_state_dict(torch.load(filename))
             torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train)
             result = temp[TRAINING][TRAINING_PHASE][-1]
             if k_fold > 1:
                 result = temp[TRAINING][VALIDATION_PHASE][-1]
@@ -328,12 +329,30 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         values.append(value)
         mins.append(min_)
 
+        if optimizer_name == 'adam':
+            min_ = float('inf')
+            value = 0.
+            for beta in beta_array:
+                model.load_state_dict(torch.load(filename))
+                torch.manual_seed(seed)
+                temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, beta = beta )
+                result = temp[TRAINING][TRAINING_PHASE][-1]
+                if k_fold > 1:
+                    result = temp[TRAINING][VALIDATION_PHASE][-1]
+
+                if result < min_:
+                    min_ = result
+                    value = weight_auxiliary_loss
+            best_beta = beta
+            values.append(value)
+            mins.append(min_)
+
         min_ = float('inf')
         value = 0.
         for weight_auxiliary_loss in wal_array:
             model.load_state_dict(torch.load(filename))
             torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_auxiliary_loss = weight_auxiliary_loss )
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_auxiliary_loss = weight_auxiliary_loss )
             result = temp[TRAINING][TRAINING_PHASE][-1]
             if k_fold > 1:
                 result = temp[TRAINING][VALIDATION_PHASE][-1]
@@ -350,7 +369,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         for weight_decay_train in wdt_array:
             model.load_state_dict(torch.load(filename))
             torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_decay_train = weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_decay_train = weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
             result = temp[TRAINING][TRAINING_PHASE][-1]
             if k_fold > 1:
                 result = temp[TRAINING][VALIDATION_PHASE][-1]
@@ -364,7 +383,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
 
         model.load_state_dict(torch.load(filename))
         torch.manual_seed(seed)
-        train_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size,n_epochs, lr_train = best_learning_rate_train, weight_decay_train = best_weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
+        train_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size,n_epochs, lr_train = best_learning_rate_train, weight_decay_train = best_weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
         torch.save(model.state_dict(), filename)
         print('\nEND OF TRAINING OPTIMIZATION\n')
     except KeyboardInterrupt:

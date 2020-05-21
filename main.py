@@ -7,7 +7,7 @@ import io_bin_process
 import io_num_process
 import train
 
-from bin_models import get_2channels, get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn, get_2nets_ws_required
+from bin_models import get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn, get_2nets_ws_required
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
 
@@ -19,7 +19,6 @@ GETTERS_DICT =  {
 
                     '2nets_ws_required' : ('Binary', get_2nets_ws_required),
 
-                    '2channels': ('Binary', get_2channels),
                     '2nets': ('Binary', get_2nets),
                     '2nets_ws': ('Binary', get_2nets_ws),
 

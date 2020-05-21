@@ -47,7 +47,7 @@ def main(args):
             tr_target = io_num_process.one_hot_encoding(tr_figure_target)
 
         tic = time.perf_counter()
-        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, K_FOLD, BATCH_SIZE, NB_EPOCHS, lr_train = LRS[model_name][0], beta = LRS[model_name][1], weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
+        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target,'adam', K_FOLD, BATCH_SIZE, NB_EPOCHS, lr_train = LRS[model_name][0], beta = LRS[model_name][1], weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
         toc = time.perf_counter()
 
 

@@ -6,20 +6,20 @@ import dlc_practical_prologue as prologue
 import io_bin_process
 import io_num_process
 import train
+import main
 import run
 
-
-MODEL = '2nets_ws_bn'
-model_tuple = run.GETTERS_DICT[MODEL]
+MODEL = '2nets_ws_do'
+model_tuple = main.GETTERS_DICT[MODEL]
 BATCH_SIZE = 5
-LR_PRETRAIN = 0.001668
-WD_PRETRAIN = 0.000001
-LR = 6e-4
+LR_PRETRAIN = 0.0
+WD_PRETRAIN = 0.0
+LR = 5e-4
 BETA = 0.6
-WAL = 1.
-WD_TRAIN = 0.
+WAL = 0.5
+WD_TRAIN = 1e-6
 NB_EPOCHS = 50
-NB_SIMULATIONS = 10
+NB_SIMULATIONS = 1
 
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
@@ -28,7 +28,7 @@ def main():
     train_accuracies = []
     test_accuracies = []
     for nb_simulation in range(NB_SIMULATIONS):
-        torch.manual_seed(nb_simulation ** 4)
+        torch.manual_seed(3)
         m_model = model_tuple[1]()
 
         tr_input, tr_target, tr_figure_target, te_input, te_target,_ = prologue.generate_pair_sets(run.PAIRS_NB)
@@ -42,7 +42,7 @@ def main():
             tr_target = io_num_process.one_hot_encoding(tr_figure_target)
 
         tic = time.perf_counter()
-        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, 1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, beta = BETA, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
+        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, 'adam',  1, BATCH_SIZE, NB_EPOCHS, lr_train = LR, beta = BETA, weight_decay_train = WD_TRAIN, weight_auxiliary_loss = WAL, num_epoch_pretrain = 0, lr_pretrain = LR_PRETRAIN, weight_decay_pretrain = WD_PRETRAIN)
         toc = time.perf_counter()
 
 
