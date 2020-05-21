@@ -31,7 +31,7 @@ def build_kfold(train_input, k_fold):
     if fold_size * k_fold != nrows:
         raise ValueError(
             'ERROR: k_fold value as to be a divisor of the number of rows in the training set')
-    indices = torch.Tensor(range(nrows))
+    indices = torch.arange(nrows)
     result = [indices[k * fold_size : (k + 1) * fold_size] for k in range(k_fold)]
     return torch.stack(result)
 
@@ -64,7 +64,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
 
         dataloaders = {
             TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = shuffle),
-            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = shuffle)
+            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = shuffle and k_fold > 1)
         }
 
         epochs = {PRETRAINING : num_epoch_pretrain, TRAINING : num_epoch_train}
