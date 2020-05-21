@@ -46,7 +46,7 @@ GETTERS_DICT =  {
                 }
 
 PAIRS_NB = 1000
-AUGMENTATION_FOLDS = 0
+AUGMENTATION_FOLDS = 9
 DATA_DOUBLING = False
 
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
