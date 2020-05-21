@@ -31,111 +31,13 @@ def build_kfold(train_input, k_fold):
     if fold_size * k_fold != nrows:
         raise ValueError(
             'ERROR: k_fold value as to be a divisor of the number of rows in the training set')
-    indices = torch.randperm(nrows)
+    indices = torch.Tensor(range(nrows))
     result = [indices[k * fold_size : (k + 1) * fold_size] for k in range(k_fold)]
     return torch.stack(result)
 
-
-def train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, lr, num_epoch, auxiliary_loss=True, decrease_lr = False):
-    criterion =nn.CrossEntropyLoss()
-    auxiliary_criterion = nn.CrossEntropyLoss()
-    optimizer = optim.ADAM(model.parameters(), lr=lr)
-
-    logs = {'loss': [], 'val_loss': []}
-
-    torch.save(model.state_dict(), PATH)
-
-    global_train_loss = []
-    global_valid_loss = []
-
-
-    for k in range(k_fold):
-        model.load_state_dict(torch.load(PATH))
-
-
-        indices = build_kfold(train_input, k_fold)
-        va_indices = indices[k] # 1000/k_fold indices for validation
-        tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1) # (k_fold-1) * 1000 / k_fold indices (the rest)
-
-        if k_fold == 1:
-            va_indices, tr_indices = tr_indices, va_indices
-
-        train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices])
-        validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_target[va_indices])
-
-        dataloaders = {
-            TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
-            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
-        }
-
-        for e in range(num_epoch):
-            avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
-
-            # size([k_fold, 1000/k_fold])
-
-            if decrease_lr:
-                decrease_learning_rate(lr, optimizer, e, num_epoch)
-
-            for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
-                if phase == TRAINING_PHASE:
-                    model.train()
-                else:
-                    model.eval()
-
-                running_loss = []
-
-                for inputs, targets, figures in dataloaders[phase]:
-                    outputs = model(inputs)
-                    if not(isinstance(outputs, tuple)):
-                        loss = criterion(outputs, targets.type(torch.LongTensor))
-                    else:
-                        tuples = outputs
-                        loss = criterion(tuples[-1], targets.type(torch.LongTensor))
-                        if auxiliary_loss:
-                            for i in range(len(tuples) - 1):
-                                loss += auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
-                    if phase == TRAINING_PHASE:
-                        optimizer.zero_grad()
-                        loss.backward()
-                        optimizer.step()
-
-                    running_loss.append(loss)
-
-                avg_loss[phase].append(torch.tensor(running_loss).mean())
-
-            logs['loss'].append(torch.tensor(avg_loss[TRAINING_PHASE]).mean())
-            logs['val_loss'].append(torch.tensor(avg_loss[VALIDATION_PHASE]).mean())
-
-            temp_loss = torch.tensor(logs['loss'])
-            temp_val_loss = torch.tensor(logs['val_loss'])
-
-
-            format = 'Epoch %3d / %3d \n\t %s \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-            results = (e+1, num_epoch, TRAINING, temp_loss.min(), temp_loss.max(), temp_loss[-1])
-
-            if k_fold > 1:
-                format += '\t Validation \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
-                results += (temp_val_loss.min(), temp_val_loss.max(), temp_val_loss[-1])
-
-            print(format % results)
-
-        global_train_loss.append(temp_loss[-1])
-        global_valid_loss.append(temp_val_loss[-1])
-
-    format = 'Mean Final Loss \n\t Training :\t %8.5f\n'
-    results = [torch.tensor(global_train_loss).mean()]
-
-    if k_fold > 1 :
-        format += '\t Validation :\t %8.5f\n'
-        results.append(torch.tensor(global_valid_loss).mean())
-    print(format % tuple(results))
-    model.eval()
-
-
-
 SGD = 'sgd'
 ADAM = 'adam'
-def pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1.):
+def pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False):
     criterion =nn.CrossEntropyLoss()
     auxiliary_criterion = nn.CrossEntropyLoss()
 
@@ -146,12 +48,11 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
     global_train_loss = []
     global_valid_loss = []
 
+    indices = build_kfold(train_input, k_fold)
 
     for k in range(k_fold):
         model.load_state_dict(torch.load(PATH))
 
-
-        indices = build_kfold(train_input, k_fold)
         va_indices = indices[k] # 1000/k_fold indices for validation
         tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1) # (k_fold-1) * 1000 / k_fold indices (the rest)
 
@@ -162,8 +63,8 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
         validation_dataset = TensorDataset(train_input[va_indices],  train_target[va_indices], train_figures_target[va_indices])
 
         dataloaders = {
-            TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = False),
-            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = False)
+            TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = shuffle),
+            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = shuffle)
         }
 
         epochs = {PRETRAINING : num_epoch_pretrain, TRAINING : num_epoch_train}

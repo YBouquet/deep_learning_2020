@@ -1,6 +1,6 @@
 import os
 
-MODEL = '2nets_ws_required'
+MODEL = 'required'
 LEARNING_RATE  = '6e-4'
 BETA1 = '0.9'
 BATCH_SIZE = '250'

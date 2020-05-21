@@ -17,7 +17,7 @@ GETTERS_DICT =  {
                     'net2': ('Number', get_net2), #model given in the practicals
                     'lenet5': ('Number', get_lenet5), #LeCun's model with correction due to different input format
 
-                    '2nets_ws_required' : ('Binary', get_2nets_ws_required),
+                    'required' : ('Binary', get_required),
 
                     '2nets': ('Binary', get_2nets),
                     '2nets_ws': ('Binary', get_2nets_ws),
@@ -51,7 +51,6 @@ def main(args):
             tr_input, tr_target, tr_figure_target = io_bin_process.data_augmentation(tr_input, tr_target, tr_figure_target, PAIRS_NB, AUGMENTATION_FOLDS)
             if DATA_DOUBLING:
                 tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
-
         elif model_tuple[0] == 'Number':
             (tr_input, tr_figure_target, test_set_figures, test_target_figures, test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(run.PAIRS_NB)
             tr_target = io_num_process.one_hot_encoding(tr_figure_target)

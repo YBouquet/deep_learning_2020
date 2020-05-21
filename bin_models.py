@@ -17,7 +17,7 @@ class m_conv(nn.Module):
         self.conv_ = nn.Conv2d(in_channels = in_channels, out_channels = out_channels, kernel_size = kernel_size,  padding = padding, padding_mode = padding_mode)
     def forward(self, x):
         return f.relu(self.conv_(x))
-
+'''
 class m_conv_reduced(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, padding = 0, padding_mode = 'zeros'):
         super(m_conv_reduced, self).__init__()
@@ -48,7 +48,7 @@ class m_conv_bn(nn.Module):
                     )
     def forward(self, x):
         return f.relu(self.conv_(x))
-
+'''
 CN_U_PARAMETERS = {
     'in_channels' : 1,
     'out_channels': 6,
@@ -152,55 +152,6 @@ class Two_nets(nn.Module):
 def get_2nets():
     return Two_nets(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
 
-class Two_nets_ws_required(nn.Module):
-    @staticmethod
-    def conv_unit(in_channels, out_channels, padding = 0, padding_mode = 'zeros', kernel_size = CONV_KERNEL):
-        return m_conv_reduced(in_channels, out_channels, kernel_size, padding = padding, padding_mode = padding_mode)
-
-    @staticmethod
-    def s_linear(in_features, hd_features, out_features):
-        block = nn.Sequential(
-            nn.Linear(in_features, hd_features),
-            nn.ReLU(),
-            nn.Linear(hd_features, out_features)
-        )
-        return block
-
-    @staticmethod
-    def u_linear(in_features, hd_features_1, hd_features_2, out_features):
-        block = nn.Sequential(
-            nn.Linear(in_features, hd_features_1),
-            nn.ReLU(),
-            nn.Linear(hd_features_1, out_features)
-        )
-        return block
-
-
-    def __init__(self, cn_u_parameters, fn_u_parameters, cn_s_parameters, fn_comp_parameters):
-        super(Two_nets_ws_required, self).__init__()
-        self.shared_conv_1 =   self.conv_unit(
-                                                cn_u_parameters['in_channels'],
-                                                cn_s_parameters['out_channels']
-                                            )
-
-        self.shared_linear_1 = self.u_linear(
-                                                fn_u_parameters['in_features'],
-                                                fn_u_parameters['hd_features_1'],
-                                                fn_u_parameters['hd_features_2'],
-                                                fn_u_parameters['out_features']
-                                            )
-        self.shared_linear_2 =     self.s_linear(
-                                                fn_comp_parameters['in_features'],
-                                                fn_comp_parameters['hd_features'],
-                                                fn_comp_parameters['out_features']
-                                            )
-    def forward(self, x):
-        shared_1 = self.shared_conv_1(x[:,0].view(-1,1,14,14))
-        shared_2 = self.shared_conv_1(x[:,1].view(-1,1,14,14))
-        num_1 = f.relu(self.shared_linear_1(shared_1.view(-1, 16*5*5)))
-        num_2 = f.relu(self.shared_linear_1(shared_2.view(-1, 16*5*5)))
-        comp = self.shared_linear_2(torch.cat((num_1, num_2), axis = 1))
-        return comp
 
 class Two_nets_ws(nn.Module):
     @staticmethod
@@ -392,7 +343,7 @@ class Two_nets_ws_bn(nn.Module):
                                                 fn_comp_parameters['hd_features'],
                                                 fn_comp_parameters['out_features']
                                             )
-                                            
+
     def forward(self, x):
         unshared_1 = self.shared_conv_1(x[:,0].view(-1,1,14,14))
         unshared_2 = self.shared_conv_1(x[:,1].view(-1,1,14,14))
@@ -403,11 +354,61 @@ class Two_nets_ws_bn(nn.Module):
         comp = self.shared_linear_2(torch.cat((num_1, num_2), axis = 1))
         return num_1, num_2, comp
 
+class Required(nn.Module):
+    @staticmethod
+    def conv_unit(in_channels, out_channels, padding = 0, padding_mode = 'zeros', kernel_size = CONV_KERNEL):
+        return m_conv_reduced(in_channels, out_channels, kernel_size, padding = padding, padding_mode = padding_mode)
+
+    @staticmethod
+    def s_linear(in_features, hd_features, out_features):
+        block = nn.Sequential(
+            nn.Linear(in_features, hd_features),
+            nn.ReLU(),
+            nn.Linear(hd_features, out_features)
+        )
+        return block
+
+    @staticmethod
+    def u_linear(in_features, hd_features_1, hd_features_2, out_features):
+        block = nn.Sequential(
+            nn.Linear(in_features, hd_features_1),
+            nn.ReLU(),
+            nn.Linear(hd_features_1, out_features)
+        )
+        return block
+
+
+    def __init__(self, cn_u_parameters, fn_u_parameters, cn_s_parameters, fn_comp_parameters):
+        super(Two_nets_ws_required, self).__init__()
+        self.shared_conv_1 =   self.conv_unit(
+                                                cn_u_parameters['in_channels'],
+                                                cn_s_parameters['out_channels']
+                                            )
+
+        self.shared_linear_1 = self.u_linear(
+                                                fn_u_parameters['in_features'],
+                                                fn_u_parameters['hd_features_1'],
+                                                fn_u_parameters['hd_features_2'],
+                                                fn_u_parameters['out_features']
+                                            )
+        self.shared_linear_2 =     self.s_linear(
+                                                fn_comp_parameters['in_features'],
+                                                fn_comp_parameters['hd_features'],
+                                                fn_comp_parameters['out_features']
+                                            )
+    def forward(self, x):
+        shared_1 = self.shared_conv_1(x[:,0].view(-1,1,14,14))
+        shared_2 = self.shared_conv_1(x[:,1].view(-1,1,14,14))
+        num_1 = f.relu(self.shared_linear_1(shared_1.view(-1, 16*5*5)))
+        num_2 = f.relu(self.shared_linear_1(shared_2.view(-1, 16*5*5)))
+        comp = self.shared_linear_2(torch.cat((num_1, num_2), axis = 1))
+        return comp
+
 def get_2nets_ws():
     return Two_nets_ws(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
 
-def get_2nets_ws_required():
-    return Two_nets_ws_required(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
+def get_required():
+    return Required(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)
 
 def get_2nets_ws_do():
     return Two_nets_ws_do(CN_U_PARAMETERS, FN_U_PARAMETERS, CN_S_PARAMETERS, FN_COMP_PARAMETERS)

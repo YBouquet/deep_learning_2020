@@ -7,7 +7,7 @@ GETTERS_DICT =  {
                     '2nets_sgd': {'model' : '2nets','optimizer' : 'sgd', 'rate' : '5e-3', 'weight_auxiliary_loss': '0.', 'weigth_decay' : '0.'},
                     '2nets_ws_sgd': {'model' : '2nets_ws','optimizer' : 'sgd', 'rate' : '5e-3', 'weight_auxiliary_loss': '0.', 'weigth_decay' : '0.'},
                     '2nets_ws_aux_sgd': {'model' : '2nets_ws','optimizer' : 'sgd', 'rate' : '5e-3', 'weight_auxiliary_loss': '1.', 'weigth_decay' : '0.'},
-                    '2nets_ws_aux_adam': {'model' '2nets_ws': ,'optimizer' : 'adam', 'rate' : '7e-5', 'beta': "0.5", 'weight_auxiliary_loss': '1.', 'weigth_decay' : '0.'},
+                    '2nets_ws_aux_adam': {'model' '2nets_ws','optimizer' : 'adam', 'rate' : '7e-5', 'beta': "0.5", 'weight_auxiliary_loss': '1.', 'weigth_decay' : '0.'},
                     '2nets_ws_aux_do_adam':  {'model' : '2nets_ws_do','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weigth_decay' : '0.'},
                     '2nets_ws_aux_do_bn_adam':  {'model' : '2nets_ws_bn','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weigth_decay' : '0.'},
                     '2netws_ws_aux_do_wd_adam': {'model' : '2nets_ws_do','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weigth_decay' : '1e-5'}
