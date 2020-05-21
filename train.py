@@ -207,7 +207,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                         logs[step][phase].append(torch.tensor(avg_loss[phase]).mean())
 
                 temp_loss = torch.tensor(logs[step][TRAINING_PHASE])
-                if e % 10 == 0:
+                if e == num_epoch_train-1:
                     format = 'Epoch %3d / %3d \n\t %s \t\t\t min: %8.5f, max: %8.5f, cur: %8.5f\n'
                     results = (e+1, epochs[step], step, temp_loss.min(), temp_loss.max(), temp_loss[-1])
 
