@@ -3,6 +3,7 @@ data/
 
 # Test report files
 *.csv
+*.png
 
 #temporary model dictionaries
 *.pth

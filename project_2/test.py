@@ -10,45 +10,68 @@ Created on Sun May 10 08:51:08 2020
 import torch
 
 ### Project modules
-import modules
-import helper
+import modules as bf
+import helpers as h
+import torch
+import time
 import arguments
 
-### To do: plot with the ratio 
+have_matplotlib = True
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    have_matplotlib = False
+
+### To do: plot with the ratio
 
 
-DICT = { 
-        'relu' : modules.ReLU,
-        'tanh' : modules.Tanh
+DICT = {
+        'relu' : bf.ReLU,
+        'tanh' : bf.Tanh
         }
 
-
+NB_SIMULATIONS = 10
 # Implémenter ratio validation, plot graph
 # tanh not working
 def main(args):
     torch.set_grad_enabled(False)
-    torch.manual_seed(1)
-    train_set, train_target,test_set, test_target = helper.generate_sets(size = 1000)
-    train_target, test_target = helper.ohe(train_target, test_target)
-    
-    activation_function_1 = DICT[args.acti_fct_1]
-    activation_function_2 = DICT[args.acti_fct_2]
-    activation_function_3 = DICT[args.acti_fct_3]
-    m_model = modules.Sequential(modules.Linear(2,args.units), 
-                                 activation_function_1(),
-                                 modules.Linear(args.units,args.units),
-                                 activation_function_2(),
-                                 modules.Linear(args.units,args.units), 
-                                 activation_function_3(),
-                                 modules.Linear(args.units,2))
-    
-    train_l, test_l = helper.train_model(m_model, train_set, train_target,test_set, test_target, lr = args.lr, num_epoch = args.n_iter)
-    
-    #plt.plot(range(NUM_EPOCHS), train_l, 'r', range(NUM_EPOCHS), test_l, 'b')
-    
-    nb_errors = helper.nb_classification_errors(m_model, test_set, test_target)
-    helper.print_error(args.acti_fct_1+'_'+args.acti_fct_2+'_'+args.acti_fct_3, nb_errors, 1000)
+    train_errors = torch.zeros(NB_SIMULATIONS)
+    test_errors = torch.zeros(NB_SIMULATIONS)
 
+    for nb_simulation in range(NB_SIMULATIONS):
+        torch.manual_seed(nb_simulation)
+        train_set, train_target,test_set, test_target = h.generate_sets(size = 1000)
+        train_target, test_target = h.ohe(train_target, test_target)
+        activation_function = DICT[args.activation]
+        m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
+
+        tic = time.perf_counter()
+        train_l, test_l = h.train_model(m_model, train_set, train_target,test_set, test_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
+        toc = time.perf_counter()
+
+        print(f"{nb_simulation+1}-th simulation trained in {toc - tic:0.2f} seconds.")
+        tr_error =h.nb_classification_errors(m_model, train_set, train_target, args.batch_size) / 10
+        te_error = h.nb_classification_errors(m_model, test_set, test_target, args.batch_size) / 10
+        train_errors[nb_simulation] = tr_error
+        test_errors[nb_simulation] = te_error
+        print(f"{nb_simulation+1}-th simulation, train errors = {tr_error} %, test accuracy = {te_error} %")
+    print('\t', f"Mean train error = {train_errors.mean():0.2f} %, Std train error = {train_errors.std():0.2f}", "\n\t", f"Mean test error = {test_errors.mean():0.2f} %, Std test error = {test_errors.std():0.2f}", '\n')
+
+
+    if have_matplotlib :
+        x = range(args.n_epochs - 1)
+        fig, ax = plt.subplots(dpi = 200)  # Create a figure and an axes.
+        ax.plot(x, train_l[1:], 'r', label = 'train')
+        ax.plot(x, test_l[1:], 'b', label = 'test')
+        ax.set_xlabel('Epochs')  # Add an x-label to the axes.
+        ax.set_ylabel('MSE Loss')  # Add a y-label to the axes.
+        title = 'Training with'+ args.activation +'activation'
+        ax.set_title(title)  # Add a title to the axes.
+        ax.legend()
+        filename = 'training_'+args.activation + '.png'
+        fig.savefig(filename)
+
+    #plt.plot(range(NUM_EPOCHS), train_l, 'r', range(NUM_EPOCHS), test_l, 'b')
 
 if __name__ == '__main__':
     main(arguments.get_args())

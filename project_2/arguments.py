@@ -11,11 +11,10 @@ import argparse
 parser = argparse.ArgumentParser(description='Arguments file for project 2.')
 
 # Training parameters
-parser.add_argument('--n_iter', type = int, default = 10, help = 'Number of epochs')
+parser.add_argument('--n_epochs', type = int, default = 5000, help = 'Number of epochs')
+parser.add_argument('--batch_size', type = int, default = 100, help = 'Size of the batch')
 parser.add_argument('--lr', type = float, default = 1e-2, help = 'Learning rate for the optimizer')
-parser.add_argument('--acti_fct_1', type = str, default = 'relu', help = "Select the first activation function of the model")
-parser.add_argument('--acti_fct_2', type = str, default = 'relu', help = "Select the second activation function of the model")
-parser.add_argument('--acti_fct_3', type = str, default = 'relu', help = "Select the last activation function of the model")
+parser.add_argument('--activation', type = str, default = 'relu', help = "Select the activation function of the model")
 parser.add_argument('--units', type = int, default = 25, help = "Select the number of units for hidden layers")
 parser.add_argument('--ratio', type = int, default = 1.0, help = 'Select the training ratio for validation')
 args = parser.parse_args()
