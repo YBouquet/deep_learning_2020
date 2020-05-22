@@ -31,19 +31,23 @@ DICT = {
         }
 
 NB_SIMULATIONS = 10
-# Implémenter ratio validation, plot graph
-# tanh not working
+
+
 def main(args):
     torch.set_grad_enabled(False)
     train_errors = torch.zeros(NB_SIMULATIONS)
     test_errors = torch.zeros(NB_SIMULATIONS)
 
+
     for nb_simulation in range(NB_SIMULATIONS):
         torch.manual_seed(nb_simulation)
         train_set, train_target,test_set, test_target = h.generate_sets(size = 1000)
+
+        train_set, test_set = h.normalize(train_set, test_set)
+
         train_target, test_target = h.ohe(train_target, test_target)
         activation_function = DICT[args.activation]
-        m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
+        m_model = bf.Sequential( bf.Linear(2,args.units),  activation_function(), bf.Linear(args.units,args.units), activation_function(), bf.Linear(args.units,args.units),  activation_function(), bf.Linear(args.units,2))
 
         tic = time.perf_counter()
         #logging the losses for creating a graph for the training loss vs the test loss during the process  at the last iteration
@@ -71,8 +75,6 @@ def main(args):
         ax.legend()
         filename = 'training_'+args.activation + '.png'
         fig.savefig(filename)
-
-    #plt.plot(range(NUM_EPOCHS), train_l, 'r', range(NUM_EPOCHS), test_l, 'b')
-
+        
 if __name__ == '__main__':
     main(arguments.get_args())
