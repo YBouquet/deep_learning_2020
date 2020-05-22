@@ -5,6 +5,8 @@ The code was run in a VM built on a Linux Debian 9.3
 
 * Python version 3.7.2
 * Pytorch version 1.4.0
+* Matplotlib version 3.1.1 (for plots)
+* Numpy version 1.17.4 (for plots)
 
 To install Pytorch with conda, run:
 
@@ -65,7 +67,7 @@ To generate the training rounds and the final performance of all architecture gi
 
 `python performances.py`
 
-To generate the graph analyzing the performance of two models through cross validation (WARNING: doesn't work in the VM):
+To generate the graph analyzing the performance of two models through cross validation:
 
 `python graphs.py`
 --------------------
@@ -92,11 +94,11 @@ To generate the performance of the two version of architecture (first with relu 
 
 `python test.py`
 
-To generate the graph of the data distribution (WARNING: doesn't work in the VM):
+To generate the graph of the data distribution:
 
 `python plot_data.py`
 
-To generate the graph of the data distribution with the results of the models (WARNING: doesn't work in the VM):
+To generate the graph of the data distribution with the results of the models:
 
 `python plot_results.py`
 
