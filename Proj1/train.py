@@ -273,7 +273,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
     train_final_results, mins, values : dict, dict, list<float>, list<float>
         Dictionary regrouping the losses at each steps of the pretraining, training, validation processes for the best combination of parameters
         List of the final losses reached for each best parameter
-        List of the values of the best parameters
+        List of the values of the best parameters 
     """
 
     torch.save(model.state_dict(), filename)
@@ -345,4 +345,4 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         print('\nEND OF TRAINING OPTIMIZATION\n')
     except KeyboardInterrupt:
         return train_final_results, mins, values
-    return train_final_results, pretrain_final_results, mins, values
+    return train_final_results, mins, values

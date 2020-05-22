@@ -46,7 +46,7 @@ def main(args):
 
     print("---------- START SEARCH ---------------")
     try :
-        train_results, pretrain_results, independant_bests, hyperparameters = grid_search(m_model, 'grid_search.pth', tr_input, tr_target, tr_figure_target, torch.nn.CrossEntropyLoss, 'adam', max(1,args.k_fold),  args.batch_size, args.n_epochs,\
+        train_results, independant_bests, hyperparameters = grid_search(m_model, 'grid_search.pth', tr_input, tr_target, tr_figure_target, torch.nn.CrossEntropyLoss, 'adam', max(1,args.k_fold),  args.batch_size, args.n_epochs,\
                                    lrt_array = lrt_array, beta_array = beta_array,  wdt_array = wdt_array)
 
         with open('hyperparameters_'+args.model.lower()+'.txt', 'w+') as f:
