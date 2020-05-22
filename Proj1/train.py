@@ -18,12 +18,8 @@ VALIDATION_PHASE = 'Validation'
 PRETRAINING = 'Pretraining'
 TRAINING = 'Training'
 
-PATH = 'temp.pth'
+PATH = 'temp.pth' #for the k_fold process we reinitialize the parameters of the model to retrain it with different validation sets 
 
-def decrease_learning_rate(lr, optimizer, e, num_epoch):
-    lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
 
 def build_kfold(train_input, k_fold):
     nrows = train_input.size(0)

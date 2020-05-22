@@ -46,6 +46,7 @@ def main(args):
         m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
 
         tic = time.perf_counter()
+        #logging the losses for creating a graph for the training loss vs the test loss during the process  at the last iteration
         train_l, test_l = h.train_model(m_model, train_set, train_target,test_set, test_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
         toc = time.perf_counter()
 

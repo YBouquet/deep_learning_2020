@@ -17,13 +17,13 @@ GETTERS_DICT =  {
                     'net2': ('Number', get_net2), #model given in the practicals
                     'lenet5': ('Number', get_lenet5), #LeCun's model with correction due to different input format
 
-                    'required' : ('Binary', get_required),
+                    'required' : ('Binary', get_required), #required model for the benchmark in the project guidelines
 
                     '2nets': ('Binary', get_2nets),
                     '2nets_ws': ('Binary', get_2nets_ws),
 
-                    '2nets_ws_do': ('Binary', get_2nets_ws_do),
-                    '2nets_ws_bn': ('Binary', get_2nets_ws_bn)
+                    '2nets_ws_do': ('Binary', get_2nets_ws_do), #with dropouts
+                    '2nets_ws_bn': ('Binary', get_2nets_ws_bn) #with dropouts + batch normalization
                 }
 
 PAIRS_NB = 1000
