@@ -37,11 +37,13 @@ parser.add_argument('-f', '--file',
 
 parser.add_argument('--batch_size', type=int, default=5, help = "Select the number of samples to work through before every update of the model parameters")
 parser.add_argument('--n_epochs', type=int, default=25, help = 'Number of epochs')
-parser.add_argument('--learning_rate', type = float, default = 1e-3, help = 'Learning rate for the optimizer')
+parser.add_argument('--criterion', type = str, default = 'ce', help = 'choosing criterion between mse (mean squared error) and ce (cross entropy loss)')
+parser.add_argument('--learning_rate', type = float, default = 1e-3, help = 'Learning rate for the optimizer (sgd or adam)')
 parser.add_argument('--optimizer', type = str, default = 'sgd', help = 'Optimizer for the training process')
 parser.add_argument('--adam_beta1', type = float, default = 0.9, help = 'first order decaying paramerter for Adam algorithm')
 parser.add_argument('--weight_decay', type = float, default = 0., help = 'l2 regularization parameter')
 parser.add_argument('--weight_auxiliary_loss', type = float, default = 0.)
+parser.add_argument('--shuffling', type = bool, default = False, help = 'Choose whether or not we want to shuffle data at every epoch')
 #model definition
 #parser.add_argument('--targets', type=str) #define the library
 parser.add_argument('--model', type=str, default = '2nets', help = "Select the network model") #define the library

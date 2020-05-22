@@ -31,7 +31,7 @@ AUGMENTATION_FOLDS = 0
 DATA_DOUBLING = False
 
 NB_SIMULATIONS = 10
-
+CRITERIA = {'mse' : torch.nn.MSELoss, 'ce' : torch.nn.CrossEntropyLoss}
 #models = [(Net(nb_hidden),"Net " + str(nb_hidden), 2e-3) for nb_hidden in nb_hidden_layers] + [(Net2(), "Net2", 1e-2), (LeNet5(), "LeNet5", 4e-2)]
 
 def main(args):
@@ -52,11 +52,15 @@ def main(args):
             if DATA_DOUBLING:
                 tr_input, tr_target, tr_figure_target = io_bin_process.data_doubling(tr_input, tr_target, tr_figure_target)
         elif model_tuple[0] == 'Number':
-            (tr_input, tr_figure_target, test_set_figures, test_target_figures, test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(run.PAIRS_NB)
+            (tr_input, tr_figure_target, test_set_figures, test_target_figures, test_set_first_figures, test_set_second_figures, test_target_comparison) = io_num_process.formatting_input(PAIRS_NB)
             tr_target = io_num_process.one_hot_encoding(tr_figure_target)
 
         tic = time.perf_counter()
-        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target, args.optimizer, max(1, args.k_fold), args.batch_size, args.n_epochs, lr_train = args.learning_rate, beta = args.adam_beta1, weight_decay_train = args.weight_decay, weight_auxiliary_loss = args.weight_auxiliary_loss, num_epoch_pretrain = 0, lr_pretrain = 0., weight_decay_pretrain = 0., shuffle = True)
+        temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target,
+            CRITERIA[args.criterion], args.optimizer, max(1, args.k_fold), args.batch_size, args.n_epochs,
+            lr_train = args.learning_rate, beta = args.adam_beta1, weight_decay_train = args.weight_decay, weight_auxiliary_loss = args.weight_auxiliary_loss,
+            num_epoch_pretrain = 0, lr_pretrain = 0., weight_decay_pretrain = 0., shuffle = True)
+
         toc = time.perf_counter()
 
         print(f"{nb_simulation+1}-th simulation trained in {toc - tic:0.2f} seconds.")

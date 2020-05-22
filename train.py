@@ -37,9 +37,13 @@ def build_kfold(train_input, k_fold):
 
 SGD = 'sgd'
 ADAM = 'adam'
-def pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False):
-    criterion =nn.CrossEntropyLoss()
+def pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False):
+    criterion = criterion_class()
     auxiliary_criterion = nn.CrossEntropyLoss()
+
+    m_type = torch.FloatTensor
+    if isinstance(criterion, nn.CrossEntropyLoss):
+        m_type = torch.LongTensor
 
     logs = {PRETRAINING : {TRAINING_PHASE: [], VALIDATION_PHASE: []}, TRAINING: {TRAINING_PHASE: [], VALIDATION_PHASE: []}}
 
@@ -93,10 +97,10 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
                     for inputs, targets, figures in dataloaders[phase]:
                         outputs = model(inputs)
                         if not(isinstance(outputs, tuple)):
-                            loss = criterion(outputs, targets.type(torch.LongTensor))
+                            loss = criterion(outputs, targets.type(m_type))
                         else:
                             tuples = outputs
-                            loss = criterion(tuples[-1], targets.type(torch.LongTensor))
+                            loss = criterion(tuples[-1], targets.type(m_type))
                             if step == PRETRAINING:
                                 loss = 0
                             for i in range(len(tuples) - 1):
