@@ -73,8 +73,8 @@ def main(args):
     for activation in ['relu','tanh']:
         fig, ax = plt.subplots(dpi = 200)  # Create a figure and an axes.
         activation_function = DICT[activation]
-        model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
-        train_l, test_l = h.train_model(model, train_set_normalized, train_target,test_set_normalized, test_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
+        model = bf.Sequential( bf.Linear(2, args.units),  activation_function(), bf.Linear( args.units, args.units), activation_function(), bf.Linear( args.units, args.units),  activation_function(), bf.Linear( args.units,2))
+        train_l, test_l = h.train_model(model, train_set_normalized, train_target,test_set_normalized, test_target, lr = args.lr, num_epoch = args.n_epochs, batch = args.batch_size)
 
         tr_error = h.nb_classification_errors(model, train_set_normalized, train_target, args.batch_size) / 10
         te_error = h.nb_classification_errors(model, test_set_normalized, test_target, args.batch_size) / 10

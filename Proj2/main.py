@@ -47,11 +47,11 @@ def main(args):
             train_set, test_set = h.normalize(train_set, test_set)
         train_target, test_target = h.ohe(train_target, test_target)
         activation_function = DICT[args.activation]
-        m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
+        m_model = bf.Sequential( bf.Linear(2, args.units),  activation_function(), bf.Linear( args.units, args.units), activation_function(), bf.Linear( args.units, args.units),  activation_function(), bf.Linear( args.units,2))
 
         tic = time.perf_counter()
         #logging the losses for creating a graph for the training loss vs the test loss during the process  at the last iteration
-        train_l, test_l = h.train_model(m_model, train_set, train_target,test_set, test_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
+        train_l, test_l = h.train_model(m_model, train_set, train_target,test_set, test_target, lr = args.lr, num_epoch = args.n_epochs, batch = args.batch_size)
         toc = time.perf_counter()
 
         print(f"{nb_simulation+1}-th simulation trained in {toc - tic:0.2f} seconds.")
@@ -76,6 +76,6 @@ def main(args):
         filename = 'training_'+args.activation + '.png'
         fig.savefig(filename)
 
-    
+
 if __name__ == '__main__':
     main(arguments.get_args())

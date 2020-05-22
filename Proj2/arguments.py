@@ -16,7 +16,7 @@ parser.add_argument('--batch_size', type = int, default = 100, help = 'Size of t
 parser.add_argument('--lr', type = float, default = 1e-2, help = 'Learning rate for the optimizer')
 parser.add_argument('--activation', type = str, default = 'relu', help = "Select the activation function of the model")
 parser.add_argument('--units', type = int, default = 25, help = "Select the number of units for hidden layers")
-parser.add_argument('--ratio', type = int, default = 1.0, help = 'Select the training ratio for validation')
+parser.add_argument('--ratio', type = int, default = 0.8, help = 'Select the training ratio for validation')
 args = parser.parse_args()
 
 def get_args():

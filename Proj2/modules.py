@@ -40,7 +40,7 @@ class Linear(Module):
     def __init__(self, in_features, out_features, gain = 1):
         xavier_std = gain * math.sqrt(2./(in_features + out_features))
         self.w = empty(out_features, in_features).normal_(mean = 0., std = xavier_std)
-        self.b = empty(out_features).normal_(mean = 0., std = 1).view(1,-1) #vérifier l'initialisation
+        self.b = empty(out_features).normal_(mean = 0., std = 1).view(1,-1)
         self.grad_w = empty(out_features, in_features).zero_().float()
         self.grad_b = empty(out_features).zero_().float().view(1,-1)
         self.x_saved = 0
@@ -50,8 +50,8 @@ class Linear(Module):
         return input.mm(self.w.t()) + self.b
 
     def backward(self, gradwrtoutput):
-        self.grad_w.add_(gradwrtoutput.t().mm(self.x_saved)) # dloss/dS(layer) @ x(layer-1)
-        self.grad_b.add_(gradwrtoutput.sum(0).view(1,-1)) # dloss
+        self.grad_w.add_(gradwrtoutput.t().mm(self.x_saved))
+        self.grad_b.add_(gradwrtoutput.sum(0).view(1,-1))
 
         return gradwrtoutput.mm(self.w)
 

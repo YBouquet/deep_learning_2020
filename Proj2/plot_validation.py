@@ -23,7 +23,7 @@ DICT = {
 
 """
 Analyzing the performances of the models by splitting the training set into a train and a validation sets
-Plotting the analyse 
+Plotting the analyse
 """
 
 def validation_sets(ratio):
@@ -35,7 +35,7 @@ def validation_sets(ratio):
 def main(args):
     torch.set_grad_enabled(False)
     torch.manual_seed(0)
-    train_subset, train_subtarget, validation_set, validation_target = validation_sets(0.8)
+    train_subset, train_subtarget, validation_set, validation_target = validation_sets(args.ratio)
     train_subtarget, validation_target = h.ohe(train_subtarget, validation_target)
     train_subset, validation_set = h.normalize(train_subset, validation_set)
     x = range(1, args.n_epochs+1)
@@ -43,9 +43,9 @@ def main(args):
     for activation in ['relu','tanh']:
 
         activation_function = DICT[activation]
-        m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
+        m_model = bf.Sequential( bf.Linear(2, args.units),  activation_function(), bf.Linear( args.units, args.units), activation_function(), bf.Linear( args.units, args.units),  activation_function(), bf.Linear( args.units,2))
 
-        train_subset_l, validation_set_l = h.train_model(m_model, train_subset, train_subtarget,validation_set, validation_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
+        train_subset_l, validation_set_l = h.train_model(m_model, train_subset, train_subtarget,validation_set, validation_target, lr = args.lr, num_epoch = args.n_epochs, batch = args.batch_size)
         tr_error = 100 * h.nb_classification_errors(m_model, train_subset, train_subtarget, args.batch_size) / len(train_subset)
         va_error = 100 * h.nb_classification_errors(m_model, validation_set, validation_target, args.batch_size) / len(validation_set)
         print(f"Train accuracy = {100 - tr_error} %, validation accuracy = {100 - va_error} %")
