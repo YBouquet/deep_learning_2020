@@ -23,9 +23,6 @@ DICT = {
         }
 
 
-# tracer cercle
-# axes orthonormaux, centrés, normalisation ? v
-
 def circles(x, y, s, c='b', vmin=None, vmax=None, **kwargs):
     """
     License
@@ -77,7 +74,7 @@ def main(args):
         print(f"Train accuracy = {100 - tr_error} %, test accuracy = {100 - te_error} %")
             
         blues, reds, oranges, purples = 0, 0, 0, 0
-        for nb in range(len(train_set)):
+        for nb in range(len(test_set)):
             point = test_set[nb]
             if test_target[nb][0] == 0: # in
                 output = model.forward(test_set.narrow(0,nb,1))
