@@ -1,5 +1,5 @@
 2nets_ws_do
 
 learning_rate = 0.000100
-beta = 0.600000
+beta = 0.900000
 weight_decay = 0.000010 
