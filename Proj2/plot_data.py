@@ -6,11 +6,10 @@ Created on Fri May 22 10:04:58 2020
 @author: thomas
 """
 ### Python modules
-import torch
-import math
-
 from matplotlib import pyplot as plt
 import matplotlib.lines as mlines
+import torch
+import math
 
 ### Project modules
 import helpers as h
@@ -24,9 +23,9 @@ _, train_target, test_set, test_target = h.generate_sets(size = 1000)
 _, test_target = h.ohe(train_target, test_target)
 
 
-fig, ax = plt.subplots(dpi = 200)
+fig, ax = plt.subplots(dpi = 200)  
 
-
+    
 blues, purples = 0, 0
 for nb in range(len(test_set)):
     point = test_set[nb]

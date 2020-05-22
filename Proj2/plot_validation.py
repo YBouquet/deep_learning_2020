@@ -32,6 +32,7 @@ def main(args):
     torch.manual_seed(0)
     train_subset, train_subtarget, validation_set, validation_target = validation_sets(0.8)
     train_subtarget, validation_target = h.ohe(train_subtarget, validation_target)
+    train_subset, validation_set = h.normalize(train_subset, validation_set)
     x = range(1, args.n_epochs+1)
     fig, ax = plt.subplots(dpi = 200) # Create a figure and an axes.
     for activation in ['relu','tanh']:
