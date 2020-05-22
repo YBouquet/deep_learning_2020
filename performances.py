@@ -25,12 +25,11 @@ if __name__ == '__main__':
             ' --batch_size '+ BATCH_SIZE + \
             ' --criterion ' + hyperparameters['criterion'] + \
             ' --optimizer ' + hyperparameters['optimizer'] + \
-            ' --learning_rate '+ hyperparameters['rate']
+            ' --learning_rate '+ hyperparameters['rate'] + \
+            ' --weight_auxiliary_loss ' + hyperparameters['weight_auxiliary_loss']
 
         if hyperparameters['optimizer'] == 'adam':
-            command += ' --adam_beta1 ' + hyperparameters['beta'] + \
-            ' --weight_auxiliary_loss ' + hyperparameters['weight_auxiliary_loss'] + \
-            ' --weight_decay ' + hyperparameters['weight_decay']
+            command += ' --adam_beta1 ' + hyperparameters['beta'] + ' --weight_decay ' + hyperparameters['weight_decay']
 
         if 'shuffle' in hyperparameters.keys():
             command += ' --shuffling ' + hyperparameters['shuffle']
