@@ -18,10 +18,7 @@ import io_num_process
 from saver import save_csv
 
 GETTERS_DICT =  {
-                    '2nets': ('Binary', get_2nets),
-                    '2nets_ws': ('Binary', get_2nets_ws),
-                    '2nets_ws_do': ('Binary', get_2nets_ws_do),
-
+                    '2nets_ws_do': ('Binary', get_2nets_ws_do)
                 }
 
 PAIRS_NB = 1000
@@ -47,13 +44,13 @@ def main(args):
     #tr_target, te_target = io_bin_process.targets_reshape(tr_target, te_target)
     m_model = model_tuple[1]()
 
-    lrt_array = torch.logspace(-6, -1, steps = 10)
-    beta_array = torch.linspace(0.5, 0.9, steps = 5)
-    wdt_array = torch.cat((torch.logspace(-7,-1, steps = 9),torch.Tensor([0])))
+    lrt_array = torch.logspace(-4, -3, steps = 3)
+    beta_array = [0.6]#torch.linspace(0.5, 0.9, steps = 5)
+    wdt_array = torch.logspace(-6,-4, steps = 3)
     num_epoch_pretrain = 0
     lrp_array = [0.] #lrt_array.clone()
     wdp_array = [0.] #wdt_array.clone()
-    wal_array = torch.cat((torch.linspace(0.2,0.99, steps = 9), torch.Tensor([1.])))
+    wal_array = [1.]
 
     print("---------- START GRID SEARCH ---------------")
     try :

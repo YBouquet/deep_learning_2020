@@ -10,8 +10,8 @@ GETTERS_DICT =  {
                     #'2nets_ws_aux_adam':                    {'model' : '2nets_ws','criterion' : 'ce','optimizer' : 'adam', 'rate' : '7e-5', 'beta': "0.5", 'weight_auxiliary_loss': '1.', 'weight_decay' : '0.'},
                     #'2nets_ws_aux_do_adam':                 {'model' : '2nets_ws_do','criterion' : 'ce','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weight_decay' : '0.'},
                     #'2nets_ws_aux_do_bn_adam':              {'model' : '2nets_ws_bn','criterion' : 'ce','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weight_decay' : '0.'},
-                    #'2netws_ws_aux_do_wd_adam':             {'model' : '2nets_ws_do','criterion' : 'ce','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.9", 'weight_auxiliary_loss': '1.','weight_decay' : '1e-5'},
-                    #'2netws_ws_aux_do_wd_adam_shuffle':     {'model' : '2nets_ws_do','criterion' : 'ce','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.9", 'weight_auxiliary_loss': '1.','weight_decay' : '1e-5', 'shuffle' : 'True'},
+                    #'2netws_ws_aux_do_wd_adam':             {'model' : '2nets_ws_do','criterion' : 'ce','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weight_decay' : '1e-5'},
+                    #'2netws_ws_aux_do_wd_adam_shuffle':     {'model' : '2nets_ws_do','criterion' : 'ce','optimizer' : 'adam', 'rate' : '6e-4', 'beta': "0.6", 'weight_auxiliary_loss': '1.','weight_decay' : '1e-5', 'shuffle' : 'True'},
                     'required':                             {'model' : '2nets_ws','criterion' : 'ce','optimizer' : 'adam', 'rate' : '4e-3', 'beta': "0.6", 'weight_auxiliary_loss': '0.', 'weight_decay' : '0.'}
                 }
 

@@ -66,7 +66,7 @@ def main(args):
         ax.plot(x, test_l[1:], 'b', label = 'test')
         ax.set_xlabel('Epochs')  # Add an x-label to the axes.
         ax.set_ylabel('MSE Loss')  # Add a y-label to the axes.
-        title = 'Training with'+ args.activation +'activation'
+        title = 'Training with '+ args.activation +' activation'
         ax.set_title(title)  # Add a title to the axes.
         ax.legend()
         filename = 'training_'+args.activation + '.png'
