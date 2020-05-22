@@ -27,7 +27,7 @@ from bin_models import get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn
 from bin_v2_models import get_2_one_channel, get_one_image, get_2_LeNet5, get_2channels
 from number_recognition_architectures import get_net, get_net2, get_lenet5
 
-from train import train_model, pretrain_train_model
+from train import pretrain_train_model
 import io_bin_process
 import io_num_process
 

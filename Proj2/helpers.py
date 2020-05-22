@@ -45,6 +45,10 @@ def ohe(train_targets, test_targets):
     return new_train, new_test
 
 
+def normalize(train_input, test_input):
+    return((train_input - train_input.mean(0))/train_input.std(0), (test_input - train_input.mean(0))/train_input.std(0))
+
+
 def train_model(model, train_input, train_target, test_input, test_target, lr = 1e-2, num_epoch = 25, batch = 100):
     criterion =LossMSE()
     optimizer = SGD(model.param(), lr=lr)

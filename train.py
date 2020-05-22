@@ -37,6 +37,15 @@ def build_kfold(train_input, k_fold):
 
 SGD = 'sgd'
 ADAM = 'adam'
+
+def decrease_learning_rate(lr, optimizer, e, num_epoch):
+    lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+        
+
+
 def pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False):
     criterion = criterion_class()
     auxiliary_criterion = nn.CrossEntropyLoss()
@@ -82,6 +91,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
             else :
                 optimizer = optim.SGD(model.parameters(), lr = lrs[step], weight_decay = decays[step])
             for e in range(epochs[step]):
+                decrease_learning_rate(lr_train, optimizer, e, epochs[step]) # à commenter
                 avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 
                 # size([k_fold, 1000/k_fold])
