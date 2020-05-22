@@ -5,10 +5,21 @@
 import torch
 
 
-'''
 
-'''
 def targets_reshape(train_targets, test_targets, one_hot_encoding = True):
+    """One hot encoding for the targets representing the binary classes
+
+    An option is about return a vector Nx1 of the targets
+
+    Parameters
+    ----------
+    train_targets : Tensor,
+        Targets of the train set
+    test_targets : Tensor,
+        Targets of the test set
+    one_hot_encoding : bool, optional
+        Trigger the one hot encoding of the targets
+    """
     if one_hot_encoding :
         new_train = torch.zeros((train_targets.size()[0],2))
         new_test = torch.zeros((train_targets.size()[0],2))
@@ -19,10 +30,31 @@ def targets_reshape(train_targets, test_targets, one_hot_encoding = True):
         return new_train, new_test
     return train_targets.view(-1,1), test_targets.view(-1,1)
 
-'''
 
-'''
 def nb_classification_errors(model, test_input, target, mini_batch_size):
+    """Count the number of errors the model makes during its classification
+
+    Parameters
+    ----------
+    model : nn.Module
+        Instance of the neural network model
+    test_input : Tensor
+        Test set as input of the model
+    target : Tensor
+        Targets of the test set
+    mini_batch_size: int
+        Size of the batch we want to fill in the model at each iteration
+
+    Raises
+    ------
+    Exception
+        if the size of the tuple returned by the tuple isn't recognized
+
+    Return 
+    ------
+    nb_errors: int
+        number of errors made during the classification
+    """
     nb_errors = 0
 
     for b in range(0, test_input.size(0), mini_batch_size):
@@ -39,10 +71,29 @@ def nb_classification_errors(model, test_input, target, mini_batch_size):
 
     return nb_errors
 
-'''
 
-'''
 def data_augmentation(tr_input, tr_target, tr_figure_target, pairs_nb, nb_augmentation):
+    """This function augment the data by cutting the pairs of images and reassemble randomly
+    new pairs to increase the size of the training set.
+
+    Parameters
+    ----------
+    tr_input : Tensor
+        Targets of the train set
+    tr_target : Tensor
+        Targets of the test set
+    tr_figure_target : Tensor
+        trigger the one hot encoding of the targets
+    pairs_nb : int
+        Number of pairs that we initially have
+    nb_augmentation : int
+        Increasing ratio
+
+    Return
+    ----------
+    data_augmentation_input, data_augmentation_target, data_augmentation_figure_target : tuple<Tensor>
+        augmented data with pairs_nb*(1 + nb_augmentation) new pairs
+    """
     data_augmentation_input = torch.zeros(nb_augmentation*pairs_nb,2,14,14)
     data_augmentation_figure_target = torch.zeros(nb_augmentation*pairs_nb, 2, dtype=torch.long)
     rand_indices = torch.randperm(2*nb_augmentation*pairs_nb)%pairs_nb
@@ -60,10 +111,20 @@ def data_augmentation(tr_input, tr_target, tr_figure_target, pairs_nb, nb_augmen
 
     return (data_augmentation_input, data_augmentation_target, data_augmentation_figure_target)
 
-'''
 
-'''
 def data_doubling(tr_input, tr_target, tr_figure_target):
+    """Return the initial pairs with their mirrors
+    example : from [(1,2)] we get [](1,2),(2,1)]
+
+    Parameters
+    ----------
+    tr_input : Tensor
+        Train set
+    tr_target : Tensor
+        Targets of the train set (class from 0 to 1)
+    tr_figure_target : Tensor
+        Figures of the train set (class from 0 to 9)
+    """
     pairs_nb = tr_input.size(0)
     data_augmentation_input = torch.zeros(2*pairs_nb,2,14,14)
     data_augmentation_figure_target = torch.zeros(2*pairs_nb, 2, dtype=torch.long)

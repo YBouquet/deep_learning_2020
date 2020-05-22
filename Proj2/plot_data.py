@@ -16,16 +16,18 @@ import helpers as h
 from plot_results import circles
 
 
-
+"""
+Plotting the distribution of the generated (x,y) coordinates
+"""
 
 torch.manual_seed(0)
 _, train_target, test_set, test_target = h.generate_sets(size = 1000)
 _, test_target = h.ohe(train_target, test_target)
 
 
-fig, ax = plt.subplots(dpi = 200)  
+fig, ax = plt.subplots(dpi = 200)
 
-    
+
 blues, purples = 0, 0
 for nb in range(len(test_set)):
     point = test_set[nb]

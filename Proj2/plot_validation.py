@@ -21,6 +21,11 @@ DICT = {
         }
 
 
+"""
+Analyzing the performances of the models by splitting the training set into a train and a validation sets
+Plotting the analyse 
+"""
+
 def validation_sets(ratio):
     train_set, train_target, validation_set, validation_target = h.generate_sets(size = 1000)
     index = int(ratio * len(train_set))
@@ -36,10 +41,10 @@ def main(args):
     x = range(1, args.n_epochs+1)
     fig, ax = plt.subplots(dpi = 200) # Create a figure and an axes.
     for activation in ['relu','tanh']:
-       
+
         activation_function = DICT[activation]
         m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
-    
+
         train_subset_l, validation_set_l = h.train_model(m_model, train_subset, train_subtarget,validation_set, validation_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
         tr_error = 100 * h.nb_classification_errors(m_model, train_subset, train_subtarget, args.batch_size) / len(train_subset)
         va_error = 100 * h.nb_classification_errors(m_model, validation_set, validation_target, args.batch_size) / len(validation_set)
@@ -56,4 +61,3 @@ def main(args):
 
 if __name__ == '__main__':
     main(arguments.get_args())
-

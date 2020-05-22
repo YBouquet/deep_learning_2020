@@ -31,7 +31,23 @@ def build_kfold(train_input, k_fold):
     result = [indices[k * fold_size : (k + 1) * fold_size] for k in range(k_fold)]
     return torch.stack(result)
 
+
 def decrease_learning_rate(lr, optimizer, e, num_epoch):
+    """decreasing the learning rate over the epochs
+    Use this function to see some enhancement for the Vanilla SGD
+    This function shouldn't be called for Adam Algorithm
+
+    Parameters
+    ----------
+    lr : float
+        Current learning rate
+    optimizer : torch.optim instance
+        Optimizer whose learning rate we want to decrease
+    e : int
+        Current epoch
+    num_epoch: int,
+        Total number of epochs during the training process
+    """
     lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
@@ -46,6 +62,51 @@ auxiliary losses, and pretraining
 # The result on the pretraining wasn't sufficient, so we decided to let the code be as it is
 # However we don't provide any test for it
 def pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False, decrease_lr = False):
+    """
+    Parameters
+    ----------
+    model : nn.Module
+        Instance of the neural network model
+    train_input : str
+        Train set with samples
+    train_target : int, optional
+        Train targets for comparison
+    train_figures_target : str
+        Train targets for figure recognition
+    criterion_class : Class
+        Torch.nn class of the criterion
+    optimizer_algo : str
+        Name of the optimizer ('sgd' or 'adam')
+    k_fold : int
+        Number of folds for cross_validation (1 means no cross validation)
+    mini_batch_size : int
+        Size of a batch (input of the model)
+    num_epoch_train : int
+        Number of epochs for the training process
+    lr_train : float, optional
+        Learning rate of the optimizer for the trainig process
+    beta : float, optional
+        first decaying order parameter for Adam algorithm
+    weight_decay_train : float, optional
+        L2 regularization parameter for the training process
+    num_epoch_pretrain : int, optional
+        Number of epochs for the pretraining process (0 means no pretraining)
+    lr_pretrain : float, optional
+        Learning rate of the optimizer for the pretrainig process
+    weight_decay_pretrain : float, optional
+        L2 regularization for the pretraining process
+    weight_auxiliary_loss : float, optional
+        Weight given to the auxiliary losses for the sum of the losses
+    shuffle : bool, optional
+        True implies the shuffling of the data at each
+    decrease_lr : bool, optional
+        Choose if we decrease the learning rate with time (according to the associated function)
+
+    Return
+    ----------
+    logs : dict
+        Dictionary regrouping the losses at each steps of the pretraining, training, validation processes
+    """
     criterion = criterion_class()
     auxiliary_criterion = nn.CrossEntropyLoss()
 
@@ -174,10 +235,50 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
 
 
 def grid_search(model, filename, train_input, train_target, train_figures_target, criterion_class, optimizer_name, k_fold, mini_batch_size, n_epochs, lrt_array = [], beta_array = [],  wdt_array = [],  weight_auxiliary_loss  = 1. , seed = 0):
+    """
+    Parameters
+    ----------
+    model : nn.Module
+        Instance of the neural network model
+    filename : str
+        File where we want to store the initial parameters of the model
+    train_input : str
+        Train set with samples
+    train_target : int, optional
+        Train targets for comparison
+    train_figures_target : str
+        Train targets for figure recognition
+    criterion_class : Class
+        Torch.nn class of the criterion
+    optimizer_name : str
+        Name of the optimizer ('sgd' or 'adam')
+    k_fold : int
+        Number of folds for cross_validation (1 means no cross validation)
+    mini_batch_size : int
+        Size of a batch (input of the model)
+    num_epoch_train : int
+        Number of epochs for the training process
+    lrt_array : list<float>, optional
+        List of learning rates we want to test for the trainig process
+    beta_array : list<float>, optional
+        List of first decaying order parameters to test for the trainig process
+    wdt_array : list<float>, optional
+        List of L2 regularization parameters o test for the trainig process
+    weight_auxiliary_loss : float, optional
+        Weight given to the auxiliary losses for the sum of the losses
+    seed : int, optional
+        Seed used for feeding the randomizator of torch
+    Return
+    ----------
+    train_final_results, mins, values : dict, dict, list<float>, list<float>
+        Dictionary regrouping the losses at each steps of the pretraining, training, validation processes for the best combination of parameters
+        List of the final losses reached for each best parameter
+        List of the values of the best parameters 
+    """
+
     torch.save(model.state_dict(), filename)
 
     train_final_results = {}
-    pretrain_final_results = {}
     mins = []
     values = []
 
@@ -243,5 +344,5 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         torch.save(model.state_dict(), filename)
         print('\nEND OF TRAINING OPTIMIZATION\n')
     except KeyboardInterrupt:
-        return train_final_results, pretrain_final_results, mins, values
+        return train_final_results, mins, values
     return train_final_results, pretrain_final_results, mins, values
