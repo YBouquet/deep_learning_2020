@@ -1,6 +1,8 @@
 # Deep Learning Mini-Projects
 -------
 ## Requirements
+The code was run in a VM built on a Linux Debian 9.3
+
 * Python version 3.7.2
 * Pytorch version 1.4.0
 

@@ -12,7 +12,9 @@ import dlc_practical_prologue as prologue
 
 
 
-# Formatting output.
+'''
+
+'''
 def one_hot_encoding(target):
     mini_batch_size = len(target)
     results = torch.zeros(mini_batch_size, 10)
@@ -22,7 +24,9 @@ def one_hot_encoding(target):
         index += 1
     return results
 
+'''
 
+'''
 def formatting_input(pairs_nb):
     (train_set, train_target_comparison, train_target_fig,
      test_set, test_target_comparison, test_target_fig) = prologue.generate_pair_sets(pairs_nb)
@@ -40,6 +44,9 @@ def formatting_input(pairs_nb):
            test_set_figures, test_target_figures,
            test_set_first_figures, test_set_second_figures, test_target_comparison)
 
+'''
+
+'''
 def compute_nb_recognition_errors(model, input, target, mini_batch_size):
     nb_errors = 0
 
@@ -51,7 +58,9 @@ def compute_nb_recognition_errors(model, input, target, mini_batch_size):
 
     return nb_errors
 
+'''
 
+'''
 def compute_nb_comparison_errors(model, first_input, second_input, target, mini_batch_size):
     nb_errors = 0
 

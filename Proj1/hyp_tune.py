@@ -1,10 +1,4 @@
 import torch
-import math
-
-import base64
-
-import sys
-from io import StringIO
 
 import dlc_practical_prologue as prologue
 
@@ -14,8 +8,6 @@ from models import get_2nets, get_2nets_ws, get_2nets_ws_do
 from train import grid_search
 import io_bin_process
 import io_num_process
-
-from saver import save_csv
 
 GETTERS_DICT =  {
                     '2nets_ws_do': ('Binary', get_2nets_ws_do)
@@ -45,22 +37,22 @@ def main(args):
     m_model = model_tuple[1]()
 
     lrt_array = torch.logspace(-4, -3, steps = 3)
-    beta_array = [0.6]#torch.linspace(0.5, 0.9, steps = 5)
+    beta_array = [0.9]#torch.linspace(0.5, 0.9, steps = 5)
     wdt_array = torch.logspace(-6,-4, steps = 3)
     num_epoch_pretrain = 0
-    lrp_array = [0.] #lrt_array.clone()
-    wdp_array = [0.] #wdt_array.clone()
+    #lrp_array = [] #lrt_array.clone()
+    #wdp_array = [] #wdt_array.clone()
     wal_array = [1.]
 
-    print("---------- START GRID SEARCH ---------------")
+    print("---------- START SEARCH ---------------")
     try :
-        train_results, pretrain_results, independant_bests, hyperparameters = grid_search(m_model, 'grid_search.pth', tr_input, tr_target, tr_figure_target, 'adam', max(1,args.k_fold),  args.batch_size, args.n_epochs,\
-                                   lrt_array = lrt_array, beta_array = beta_array,  wdt_array = wdt_array, num_epoch_pretrain = num_epoch_pretrain, lrp_array = lrp_array, wdp_array = wdp_array, wal_array = wal_array)
-        print(train_results)
-        print(independant_bests)
+        train_results, pretrain_results, independant_bests, hyperparameters = grid_search(m_model, 'grid_search.pth', tr_input, tr_target, tr_figure_target, torch.nn.CrossEntropyLoss, 'adam', max(1,args.k_fold),  args.batch_size, args.n_epochs,\
+                                   lrt_array = lrt_array, beta_array = beta_array,  wdt_array = wdt_array)
+
         with open('hyperparameters_'+args.model.lower()+'.txt', 'w+') as f:
             f.write(args.model.lower() + '\n')
-            f.write('\n%f\n%f\n%f\n%f\n%f\n' % tuple(hyperparameters))
+            f.write('\nlearning_rate = %f\nbeta = %f\nweight_decay = %f \n' % tuple(hyperparameters[:3]))
+
     except KeyboardInterrupt:
         del(m_model)
         return

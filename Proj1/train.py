@@ -18,7 +18,7 @@ VALIDATION_PHASE = 'Validation'
 PRETRAINING = 'Pretraining'
 TRAINING = 'Training'
 
-PATH = 'temp.pth' #for the k_fold process we reinitialize the parameters of the model to retrain it with different validation sets 
+PATH = 'temp.pth' #for the k_fold process we reinitialize the parameters of the model to retrain it with different validation sets
 
 
 def build_kfold(train_input, k_fold):
@@ -31,9 +31,21 @@ def build_kfold(train_input, k_fold):
     result = [indices[k * fold_size : (k + 1) * fold_size] for k in range(k_fold)]
     return torch.stack(result)
 
+def decrease_learning_rate(lr, optimizer, e, num_epoch):
+    lr = lr * (0.8 ** (e / num_epoch)) # 0.8 best ratio for now
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
 SGD = 'sgd'
 ADAM = 'adam'
-def pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False):
+
+'''
+This train process was implement to handle training process, validation with k_fold crossvalidation,
+auxiliary losses, and pretraining
+'''
+# The result on the pretraining wasn't sufficient, so we decided to let the code be as it is
+# However we don't provide any test for it
+def pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_algo, k_fold, mini_batch_size, num_epoch_train, lr_train = 1e-3, beta = 0.9, weight_decay_train = 0, num_epoch_pretrain = 0, lr_pretrain = 1e-3, weight_decay_pretrain = 0, weight_auxiliary_loss = 1., shuffle = False, decrease_lr = False):
     criterion = criterion_class()
     auxiliary_criterion = nn.CrossEntropyLoss()
 
@@ -43,20 +55,24 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
 
     logs = {PRETRAINING : {TRAINING_PHASE: [], VALIDATION_PHASE: []}, TRAINING: {TRAINING_PHASE: [], VALIDATION_PHASE: []}}
 
-    torch.save(model.state_dict(), PATH)
+    torch.save(model.state_dict(), PATH) #save the initial model parameter in order to reinitialize the model for each k_fold combination
 
     global_train_loss = []
     global_valid_loss = []
 
-    indices = build_kfold(train_input, k_fold)
+    indices = build_kfold(train_input, k_fold) # seperate the training set into k_fold parts for cross_validation
 
+    #at each iteration we will consider different trainset and validation set, we will at each epoch
+    #train the network on the selected trainset and verify its performance on the selected validation set
+    #the results would be stored the get the mean of this epoch through all variants of train sets and validation sets
     for k in range(k_fold):
+        # at each k_fold combination we retrain the model with its initial parameters in order to reinitialize it for the new train and validation sets
         model.load_state_dict(torch.load(PATH))
 
         va_indices = indices[k] # 1000/k_fold indices for validation
         tr_indices = indices[~(torch.arange(indices.size(0)) == k)].view(-1) # (k_fold-1) * 1000 / k_fold indices (the rest)
 
-        if k_fold == 1:
+        if k_fold == 1: #if there is no k_fold cross validation
             va_indices, tr_indices = tr_indices, va_indices
 
         train_dataset = TensorDataset(train_input[tr_indices], train_target[tr_indices], train_figures_target[tr_indices])
@@ -64,44 +80,51 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
 
         dataloaders = {
             TRAINING_PHASE : DataLoader(train_dataset, batch_size = mini_batch_size, shuffle = shuffle),
-            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = shuffle and k_fold > 1)
+            VALIDATION_PHASE : DataLoader(validation_dataset, batch_size = mini_batch_size, shuffle = shuffle and k_fold > 1) #if the validation set is empty, Dataloader can't shuffle
         }
 
+        #setting the different parameters for training and pretraining
         epochs = {PRETRAINING : num_epoch_pretrain, TRAINING : num_epoch_train}
         lrs = {PRETRAINING: lr_pretrain, TRAINING: lr_train}
         aux_weights = {PRETRAINING: 1., TRAINING: weight_auxiliary_loss}
         decays = {PRETRAINING: weight_decay_pretrain, TRAINING : weight_decay_train}
 
+        #starting with pretraining the model and starting the training afterward
+        #the iteration over pretraining is empty if num_epoch_pretrain = 0
         for step in [PRETRAINING, TRAINING]:
             if optimizer_algo == ADAM:
                 optimizer = optim.Adam(model.parameters(), betas = (beta, 0.999), lr=lrs[step], weight_decay = decays[step])
             else :
                 optimizer = optim.SGD(model.parameters(), lr = lrs[step], weight_decay = decays[step])
-            for e in range(epochs[step]):
+
+            for e in range(epochs[step]): #no iteration if epochs[step] = 0
                 avg_loss = {TRAINING_PHASE: [], VALIDATION_PHASE: []}
 
-                # size([k_fold, 1000/k_fold])
+                if decrease_lr: #we use a simple version of an adaptative algorithm by reducing the learning rate for the sgd, it can help to reach great performance
+                    decrease_learning_rate(lr, optimizer, e, num_epoch)
 
+                #we then train the model and test it on the validation set
+                #if the validation set is empty, the for loop on the validation DataLoader will directly break
                 for phase in [TRAINING_PHASE, VALIDATION_PHASE]:
-                    if phase == TRAINING_PHASE:
+                    if phase == TRAINING_PHASE: #we set the model in train mode during training phase
                         model.train()
                     else:
-                        model.eval()
+                        model.eval() #we set eval mode otherwise
 
                     running_loss = []
 
-                    for inputs, targets, figures in dataloaders[phase]:
+                    for inputs, targets, figures in dataloaders[phase]: #training or testing the model over every bacth
                         outputs = model(inputs)
-                        if not(isinstance(outputs, tuple)):
+                        if not(isinstance(outputs, tuple)): #check if the outputs return many tensors (for auxiliary loss) or a single tensor
                             loss = criterion(outputs, targets.type(m_type))
                         else:
                             tuples = outputs
-                            loss = criterion(tuples[-1], targets.type(m_type))
-                            if step == PRETRAINING:
+                            loss = criterion(tuples[-1], targets.type(m_type)) #compute the loss of the results for binary classification
+                            if step == PRETRAINING: #if we are on pretraining we want to optimize the model only over the first part of the model so we exclude the loss previously computed
                                 loss = 0
-                            for i in range(len(tuples) - 1):
+                            for i in range(len(tuples) - 1): #we add all auxiliary loss to the initial loss (can be zero if in pretraining)
                                 loss += aux_weights[step] * auxiliary_criterion(tuples[i], figures[:, i].type(torch.LongTensor))
-                        if phase == TRAINING_PHASE:
+                        if phase == TRAINING_PHASE: #we train the model here based on the computed loss
                             optimizer.zero_grad()
                             loss.backward()
                             optimizer.step()
@@ -124,7 +147,7 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
 
                     print(format % results)
 
-
+    #we compute the mean value of each epoch for each validation and train set through the all process
     for k,v in logs.items():
         for k_v, v_v in v.items():
             if v_v:
@@ -150,67 +173,14 @@ def pretrain_train_model(model, train_input, train_target, train_figures_target,
     return logs
 
 
-def grid_search(model, filename, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lrt_array = [], beta_array = [],  wdt_array = [], num_epoch_pretrain = 50, lrp_array = [], wdp_array = [], wal_array = [], seed = 0):
+def grid_search(model, filename, train_input, train_target, train_figures_target, criterion_class, optimizer_name, k_fold, mini_batch_size, n_epochs, lrt_array = [], beta_array = [],  wdt_array = [],  weight_auxiliary_loss  = 1. , seed = 0):
     torch.save(model.state_dict(), filename)
-    '''
-    size = [len(lrt_array),len(wdt_array),len(nep_array),len(lrp_array),len(wdp_array),len(wal_array),2]
 
-    results = torch.empty(tuple(size)).fill_(float('inf'))
-    '''
     train_final_results = {}
     pretrain_final_results = {}
     mins = []
     values = []
 
-    '''
-    print("PRETRAINING OPTIMIZATION STARTED")
-    min_ = float('inf')
-    value = 0.
-    try :
-        for learning_rate_pretrain in lrp_array:
-
-            model.load_state_dict(torch.load(filename))
-            torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, 0, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = learning_rate_pretrain)
-            result = temp[PRETRAINING][TRAINING_PHASE][-1]
-            if k_fold > 1:
-                result = temp[PRETRAINING][VALIDATION_PHASE][-1]
-
-            if result < min_:
-                min_ = result
-                value = learning_rate_pretrain
-
-        best_learning_rate_pretrain = value
-        values.append(value)
-        mins.append(min_)
-
-        min_ = float('inf')
-        value = 0.
-        for weight_decay_pretrain in wdp_array:
-
-            model.load_state_dict(torch.load(filename))
-            torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, 0, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = best_learning_rate_pretrain, weight_decay_pretrain = weight_decay_pretrain)
-
-            result = temp[PRETRAINING][TRAINING_PHASE][-1]
-            if k_fold > 1:
-                result = temp[PRETRAINING][VALIDATION_PHASE][-1]
-
-            if result < min_:
-                min_ = result
-                value = weight_decay_pretrain
-        best_weight_decay_pretrain = value
-        values.append(value)
-        mins.append(min_)
-
-        print('\nEND OF PRETRAINING OPTIMIZATION\n')
-        model.load_state_dict(torch.load(filename))
-        torch.manual_seed(seed)
-        pretrain_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, k_fold, mini_batch_size, 0, num_epoch_pretrain = num_epoch_pretrain, lr_pretrain = best_learning_rate_pretrain, weight_decay_pretrain = best_weight_decay_pretrain)
-        torch.save(model.state_dict(), filename)
-
-        print('\nPRETRAINED MODEL SUCCESSFULLY REGISTERED\n')
-        '''
     try:
         print('\nTRAINING OPTIMIZATION STARTED\n')
         min_ = float('inf')
@@ -218,7 +188,7 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         for learning_rate_train in lrt_array:
             model.load_state_dict(torch.load(filename))
             torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = learning_rate_train, weight_auxiliary_loss = weight_auxiliary_loss )
             result = temp[TRAINING][TRAINING_PHASE][-1]
             if k_fold > 1:
                 result = temp[TRAINING][VALIDATION_PHASE][-1]
@@ -230,47 +200,32 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
         values.append(value)
         mins.append(min_)
 
+        min_ = float('inf')
+        value = 0.
         if optimizer_name == 'adam':
             min_ = float('inf')
             value = 0.
             for beta in beta_array:
                 model.load_state_dict(torch.load(filename))
                 torch.manual_seed(seed)
-                temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, beta = beta )
+                temp = pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, beta = beta , weight_auxiliary_loss = weight_auxiliary_loss )
                 result = temp[TRAINING][TRAINING_PHASE][-1]
                 if k_fold > 1:
                     result = temp[TRAINING][VALIDATION_PHASE][-1]
 
                 if result < min_:
                     min_ = result
-                    value = weight_auxiliary_loss
-            best_beta = beta
+                    value = beta
+            best_beta = value
             values.append(value)
             mins.append(min_)
-
-        min_ = float('inf')
-        value = 0.
-        for weight_auxiliary_loss in wal_array:
-            model.load_state_dict(torch.load(filename))
-            torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_auxiliary_loss = weight_auxiliary_loss )
-            result = temp[TRAINING][TRAINING_PHASE][-1]
-            if k_fold > 1:
-                result = temp[TRAINING][VALIDATION_PHASE][-1]
-
-            if result < min_:
-                min_ = result
-                value = weight_auxiliary_loss
-        best_weight_auxiliary_loss = weight_auxiliary_loss
-        values.append(value)
-        mins.append(min_)
 
         min_ = float('inf')
         value = 0.
         for weight_decay_train in wdt_array:
             model.load_state_dict(torch.load(filename))
             torch.manual_seed(seed)
-            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_decay_train = weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
+            temp = pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class,optimizer_name, k_fold, mini_batch_size, n_epochs, lr_train = best_learning_rate_train, weight_decay_train = weight_decay_train, weight_auxiliary_loss = weight_auxiliary_loss )
             result = temp[TRAINING][TRAINING_PHASE][-1]
             if k_fold > 1:
                 result = temp[TRAINING][VALIDATION_PHASE][-1]
@@ -278,13 +233,13 @@ def grid_search(model, filename, train_input, train_target, train_figures_target
             if result < min_:
                 min_ = result
                 value = weight_decay_train
-        best_weight_decay_train = weight_decay_train
+        best_weight_decay_train = value
         values.append(value)
         mins.append(min_)
 
         model.load_state_dict(torch.load(filename))
         torch.manual_seed(seed)
-        train_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, optimizer_name, k_fold, mini_batch_size,n_epochs, lr_train = best_learning_rate_train, weight_decay_train = best_weight_decay_train, weight_auxiliary_loss = best_weight_auxiliary_loss)
+        train_final_results = pretrain_train_model(model, train_input, train_target, train_figures_target, criterion_class, optimizer_name, k_fold, mini_batch_size,n_epochs, lr_train = best_learning_rate_train, weight_decay_train = best_weight_decay_train, weight_auxiliary_loss = weight_auxiliary_loss)
         torch.save(model.state_dict(), filename)
         print('\nEND OF TRAINING OPTIMIZATION\n')
     except KeyboardInterrupt:

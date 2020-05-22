@@ -5,7 +5,9 @@ import torch
 import torch.nn.functional as F
 
 
-
+'''
+THE STATE OF THE ART : MODELS FOR
+'''
 
 # Constants
 KERNEL_SIZE = 5
@@ -21,6 +23,9 @@ NB_FEATURES = 336
 OUT_CHANNELS_NET = 32
 NB_HIDDEN = 200
 
+'''
+based on the 4th week practical
+'''
 class Net(torch.nn.Module):
     def __init__(self, nb_hidden):
         super(Net, self).__init__()
@@ -41,7 +46,9 @@ class Net(torch.nn.Module):
         x = self.fc3(x)
         return x
 
-
+'''
+based on the 4th week practical
+'''
 class Net2(torch.nn.Module):
     def __init__(self):
         super(Net2, self).__init__()
@@ -73,7 +80,9 @@ class Net2(torch.nn.Module):
 ##################################################################################################################
 
 # LeNet5 neural network for number recognition
-
+'''
+based on Yann LeCun's LeNet5 
+'''
 class LeNet5(torch.nn.Module):
     def __init__(self):
         super(LeNet5, self).__init__()

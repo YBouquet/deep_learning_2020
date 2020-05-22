@@ -5,6 +5,9 @@
 import torch
 
 
+'''
+
+'''
 def targets_reshape(train_targets, test_targets, one_hot_encoding = True):
     if one_hot_encoding :
         new_train = torch.zeros((train_targets.size()[0],2))
@@ -16,7 +19,9 @@ def targets_reshape(train_targets, test_targets, one_hot_encoding = True):
         return new_train, new_test
     return train_targets.view(-1,1), test_targets.view(-1,1)
 
+'''
 
+'''
 def nb_classification_errors(model, test_input, target, mini_batch_size):
     nb_errors = 0
 
@@ -34,7 +39,9 @@ def nb_classification_errors(model, test_input, target, mini_batch_size):
 
     return nb_errors
 
+'''
 
+'''
 def data_augmentation(tr_input, tr_target, tr_figure_target, pairs_nb, nb_augmentation):
     data_augmentation_input = torch.zeros(nb_augmentation*pairs_nb,2,14,14)
     data_augmentation_figure_target = torch.zeros(nb_augmentation*pairs_nb, 2, dtype=torch.long)
@@ -53,7 +60,9 @@ def data_augmentation(tr_input, tr_target, tr_figure_target, pairs_nb, nb_augmen
 
     return (data_augmentation_input, data_augmentation_target, data_augmentation_figure_target)
 
+'''
 
+'''
 def data_doubling(tr_input, tr_target, tr_figure_target):
     pairs_nb = tr_input.size(0)
     data_augmentation_input = torch.zeros(2*pairs_nb,2,14,14)

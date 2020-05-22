@@ -2,6 +2,10 @@
 #!/usr/bin/env python2
 
 import os
+'''
+This code generate the script that compute the performance of the convnet with 50000 parameters in 25 epochs in less than 2 seconds for each round
+and a mean test accuracy of 85%
+'''
 
 MODEL = 'required'
 LEARNING_RATE  = '4e-3'

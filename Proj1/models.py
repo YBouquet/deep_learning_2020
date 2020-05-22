@@ -17,38 +17,7 @@ class m_conv(nn.Module):
         self.conv_ = nn.Conv2d(in_channels = in_channels, out_channels = out_channels, kernel_size = kernel_size,  padding = padding, padding_mode = padding_mode)
     def forward(self, x):
         return f.relu(self.conv_(x))
-'''
-class m_conv_reduced(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding = 0, padding_mode = 'zeros'):
-        super(m_conv_reduced, self).__init__()
-        self.conv_ = nn.Sequential(
-                            nn.Conv2d(in_channels = in_channels, out_channels = out_channels, kernel_size = kernel_size,  padding = padding, padding_mode = padding_mode),
-                            nn.MaxPool2d(kernel_size = POOLING_KERNEL)
-                            )
-    def forward(self, x):
-        return f.relu(self.conv_(x))
 
-
-class m_conv_do(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding = 0, padding_mode = 'zeros'):
-        super(m_conv_do, self).__init__()
-        self.conv_ = nn.Sequential(
-                    nn.Conv2d(in_channels = in_channels, out_channels = out_channels, kernel_size = kernel_size,  padding = padding, padding_mode = padding_mode),
-                    nn.Dropout2d()
-                    )
-    def forward(self, x):
-        return f.relu(self.conv_(x))
-
-class m_conv_bn(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding = 0, padding_mode = 'zeros'):
-        super(m_conv_bn, self).__init__()
-        self.conv_ = nn.Sequential(
-                    nn.Conv2d(in_channels = in_channels, out_channels = out_channels, kernel_size = kernel_size,  padding = padding, padding_mode = padding_mode),
-                    nn.BatchNorm2d(out_channels)
-                    )
-    def forward(self, x):
-        return f.relu(self.conv_(x))
-'''
 CN_U_PARAMETERS = {
     'in_channels' : 1,
     'out_channels': 6,
