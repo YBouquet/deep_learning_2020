@@ -11,7 +11,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Arguments file for project 2.')
 
 # Training parameters
-parser.add_argument('--n_epochs', type = int, default = 500, help = 'Number of epochs')
+parser.add_argument('--n_epochs', type = int, default = 5000, help = 'Number of epochs')
 parser.add_argument('--batch_size', type = int, default = 100, help = 'Size of the batch')
 parser.add_argument('--lr', type = float, default = 1e-2, help = 'Learning rate for the optimizer')
 parser.add_argument('--activation', type = str, default = 'relu', help = "Select the activation function of the model")

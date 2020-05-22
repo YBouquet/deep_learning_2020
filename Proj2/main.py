@@ -31,7 +31,7 @@ DICT = {
         }
 
 NB_SIMULATIONS = 10
-NORMALIZES = [False, True]
+NORMALIZE = True
 
 
 def main(args):
@@ -39,14 +39,12 @@ def main(args):
     train_errors = torch.zeros(NB_SIMULATIONS)
     test_errors = torch.zeros(NB_SIMULATIONS)
     
-    for NORMALIZE in NORMALIZES:
+    
         for nb_simulation in range(NB_SIMULATIONS):
             torch.manual_seed(nb_simulation)
             train_set, train_target,test_set, test_target = h.generate_sets(size = 1000)
-            print(train_set[0])
             if NORMALIZE:
                 train_set, test_set = h.normalize(train_set, test_set)
-            print(train_set[0])
             train_target, test_target = h.ohe(train_target, test_target)
             activation_function = DICT[args.activation]
             m_model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))

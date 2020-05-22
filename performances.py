@@ -1,8 +1,8 @@
 import os
 
 GETTERS_DICT =  {
-                    #'net':                                  {'model' : 'net', 'criterion' : 'mse','optimizer' : 'sgd', 'rate' : '5e-3'}, #model given in the practicals
-                    #'net2':                                 {'model' : 'net2','criterion' : 'mse','optimizer' : 'sgd', 'rate' : '5e-3'}, #model given in the practicals
+                    'net':                                  {'model' : 'net', 'criterion' : 'mse','optimizer' : 'sgd', 'rate' : '5e-3'}, #model given in the practicals
+                    'net2':                                 {'model' : 'net2','criterion' : 'mse','optimizer' : 'sgd', 'rate' : '5e-3'}, #model given in the practicals
                     #'lenet5':                               {'model' : 'lenet5','criterion' : 'mse','optimizer' : 'sgd', 'rate' : '5e-3'}, #LeCun's model with correction due to different input format
                     #'2nets_sgd':                            {'model' : '2nets','criterion' : 'ce','optimizer' : 'sgd', 'rate' : '5e-3', 'weight_auxiliary_loss': '0.', 'weight_decay' : '0.'},
                     #'2nets_ws_sgd':                         {'model' : '2nets_ws','criterion' : 'ce','optimizer' : 'sgd', 'rate' : '5e-3', 'weight_auxiliary_loss': '0.', 'weight_decay' : '0.'},

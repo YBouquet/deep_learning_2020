@@ -61,23 +61,24 @@ def main(args):
     torch.set_grad_enabled(False)
     torch.manual_seed(0)
     train_set, train_target, test_set, test_target = h.generate_sets(size = 1000)
+    train_set_normalized, test_set_normalized = h.normalize(train_set, test_set)
     train_target, test_target = h.ohe(train_target, test_target)
     
     for activation in ['relu','tanh']:
         fig, ax = plt.subplots(dpi = 200)  # Create a figure and an axes.
         activation_function = DICT[activation]
         model = bf.Sequential( bf.Linear(2,25),  activation_function(), bf.Linear(25,25), activation_function(), bf.Linear(25,25),  activation_function(), bf.Linear(25,2))
-        train_l, test_l = h.train_model(model, train_set, train_target,test_set, test_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
+        train_l, test_l = h.train_model(model, train_set_normalized, train_target,test_set_normalized, test_target, lr = 1e-2, num_epoch = args.n_epochs, batch = args.batch_size)
         
-        tr_error = h.nb_classification_errors(model, train_set, train_target, args.batch_size) / 10
-        te_error = h.nb_classification_errors(model, test_set, test_target, args.batch_size) / 10
+        tr_error = h.nb_classification_errors(model, train_set_normalized, train_target, args.batch_size) / 10
+        te_error = h.nb_classification_errors(model, test_set_normalized, test_target, args.batch_size) / 10
         print(f"Train accuracy = {100 - tr_error} %, test accuracy = {100 - te_error} %")
             
         blues, reds, oranges, purples = 0, 0, 0, 0
-        for nb in range(len(test_set)):
+        for nb in range(len(test_set_normalized)):
             point = test_set[nb]
             if test_target[nb][0] == 0: # in
-                output = model.forward(test_set.narrow(0,nb,1))
+                output = model.forward(test_set_normalized.narrow(0,nb,1))
                 _, predicted_class = output.max(1)
                 if test_target[nb, predicted_class[0]] <= 0 :
                     color = 'red'
@@ -86,7 +87,7 @@ def main(args):
                     color = 'blue'
                     blues += 1
             else: # out
-                output = model.forward(test_set.narrow(0,nb,1))
+                output = model.forward(test_set_normalized.narrow(0,nb,1))
                 _, predicted_class = output.max(1)
                 if test_target[nb, predicted_class[0]] <= 0 :
                     color = 'orange'
