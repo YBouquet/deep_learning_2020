@@ -59,7 +59,7 @@ def main(args):
         temp = train.pretrain_train_model(m_model, tr_input, tr_target, tr_figure_target,
             CRITERIA[args.criterion], args.optimizer, max(1, args.k_fold), args.batch_size, args.n_epochs,
             lr_train = args.learning_rate, beta = args.adam_beta1, weight_decay_train = args.weight_decay, weight_auxiliary_loss = args.weight_auxiliary_loss,
-            num_epoch_pretrain = 0, lr_pretrain = 0., weight_decay_pretrain = 0., shuffle = True)
+            num_epoch_pretrain = 0, lr_pretrain = 0., weight_decay_pretrain = 0., shuffle = args.shuffling)
 
         toc = time.perf_counter()
 
