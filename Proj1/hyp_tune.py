@@ -9,7 +9,7 @@ from io import StringIO
 import dlc_practical_prologue as prologue
 
 
-from bin_models import get_2nets, get_2nets_ws, get_2nets_ws_do
+from models import get_2nets, get_2nets_ws, get_2nets_ws_do
 
 from train import grid_search
 import io_bin_process

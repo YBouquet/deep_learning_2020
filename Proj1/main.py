@@ -7,8 +7,8 @@ import io_bin_process
 import io_num_process
 import train
 
-from bin_models import get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn, get_required
-from number_recognition_architectures import get_net, get_net2, get_lenet5
+from models import get_2nets, get_2nets_ws, get_2nets_ws_do,get_2nets_ws_bn, get_required
+from fr_models import get_net, get_net2, get_lenet5
 
 
 
