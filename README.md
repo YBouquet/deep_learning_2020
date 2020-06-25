@@ -12,6 +12,7 @@ To install Pytorch with conda, run:
 
 `conda install pytorch==1.4.0 -c pytorch`
 
+
 ------------------------
 ## Project 1
 
@@ -67,11 +68,14 @@ To generate the training rounds and the final performance of all architecture gi
 
 `python performances.py`
 
+To run both `required.py` and `performances.py`, run :
+
+`python test.py`
+
 To generate the graph analyzing the performance of two models through cross validation:
 
 `python graphs.py`
 --------------------
-
 ## Project 2
 
 You can find the code for the project 1 in the ./Proj2 folder
